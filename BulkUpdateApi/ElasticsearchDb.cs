@@ -57,7 +57,8 @@ namespace BulkUpdateApi {
         {
             PostData<object> bodyx = GetUpdate(
                 cmd.Matching.TagIds.Select(x => x.Value).ToArray(),
-                cmd.NewTag.Id.Value, cmd.NewTag.Value.Value);
+                cmd.NewTag.Id.Value, cmd.NewTag.Value.Value,
+                cmd.CommandId);
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, bodyx);
             return response.Success;
@@ -68,7 +69,8 @@ namespace BulkUpdateApi {
             PostData<object> bodyx = GetUpdate(
                 requestBody.Match.Tags, 
                 Int32.Parse(requestBody.AddTag.Id), 
-                requestBody.AddTag.Value);
+                requestBody.AddTag.Value,
+                Guid.NewGuid());
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, bodyx);
             return response.Success;
@@ -98,7 +100,17 @@ namespace BulkUpdateApi {
             };
         }
 
-        public static string GetUpdate(int[] tagIds, int tagId, string tagValue)
+        public static string GetScript()
+        {
+            var newScript = @"
+                ctx._source.tags.add(params.newtag);
+                if (ctx._source.operations == null)
+                    {ctx._source.operations = [];} 
+                ctx._source.operations.add(params.operationId)";
+            return newScript.Replace(Environment.NewLine, "");
+        }
+
+        public static string GetUpdate(int[] tagIds, int tagId, string tagValue, Guid operationId)
         {
             var query = @"
                 {
@@ -115,11 +127,12 @@ namespace BulkUpdateApi {
                         }
                     },
                   ""script"": {
-                    ""inline"": ""ctx._source.tags.add(params.newtag)"",
+                    ""inline"": "" " + GetScript() + @" "",
                     ""lang"": ""painless"",
                     ""params"": {
-                      ""newtag"" :" + GetTag(tagId, tagValue) +
-                    @"}
+                      ""newtag"" :" + GetTag(tagId, tagValue) + @",
+                      ""operationId"" : """ + operationId + @"""
+                    }
                   }
                 }
                 ";

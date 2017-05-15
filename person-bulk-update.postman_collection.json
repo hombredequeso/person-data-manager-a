@@ -1,0 +1,62 @@
+{
+	"variables": [],
+	"info": {
+		"name": "person-bulk-update",
+		"_postman_id": "ba338ebe-619c-4a9d-e38f-90994386d20a",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "POST http://localhost:8080/api/person/tag",
+			"request": {
+				"url": "http://localhost:8080/api/person/tag",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"addTag\" :{\n\t\t\"id\": 7878,\n\t\t\"value\": \"anothertag\"\n\t},\n\t\"match\": {\n\t\t\"name\" : \"anything\",\n\t\t\"tags\": [1,2]\n\t}\n}"
+				},
+				"description": "Bulk update of tags for people matching a query."
+			},
+			"response": []
+		},
+		{
+			"name": "GET http://localhost:8080/api/person/1",
+			"request": {
+				"url": "http://localhost:8080/api/person/1",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "POST http://localhost:8080/api/person",
+			"request": {
+				"url": "http://localhost:8080/api/person",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"Id\": \"1\",\n\t\"Name\" : \"john smith\",\n\t\"Tags\" : [{\"id\":1, \"value\":\"tag1\"}, {\"id\":2, \"value\":\"tag2\"}]\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
