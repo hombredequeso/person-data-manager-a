@@ -79,18 +79,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ElasticsearchDb.cs" />
+    <Compile Include="Api\PersonModule.cs" />
+    <Compile Include="Dal\ElasticsearchDb.cs" />
+    <Compile Include="Dal\ElasticsearchQueries.cs" />
+    <Compile Include="Domain\Id.cs" />
+    <Compile Include="Domain\IntId.cs" />
+    <Compile Include="Domain\Tag.cs" />
     <Compile Include="HomeModule.cs" />
-    <Compile Include="PersonModule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="UpdatePersonsTagsCommand.cs" />
+    <Compile Include="Domain\String50.cs" />
+    <Compile Include="Command\UpdatePersonsTagsCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

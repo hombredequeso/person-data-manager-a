@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Linq;
+using BulkUpdateApi.Command;
+using BulkUpdateApi.Dal;
+using BulkUpdateApi.Domain;
 using Nancy;
 using Nancy.ModelBinding;
 
-namespace BulkUpdateApi
+namespace BulkUpdateApi.Api
 {
     // Request classes:
     public class Tag
@@ -37,7 +40,7 @@ namespace BulkUpdateApi
         {
             return new UpdatePersonsTagsCommand(
                 Guid.NewGuid(),
-                new UpdatePersonsTagsCommand.Tag(
+                new Domain.Tag(
                     new Id<int>(int.Parse(requestBody.AddTag.Id)),
                     new String50(requestBody.AddTag.Value)),
                 new UpdatePersonsTagsCommand.PersonMatch(
