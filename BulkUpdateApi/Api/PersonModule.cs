@@ -1,15 +1,10 @@
-﻿using System;
-using System.Linq;
-using BulkUpdateApi.Command;
-using BulkUpdateApi.Dal;
-using BulkUpdateApi.Domain;
+﻿using BulkUpdateApi.Dal;
 using Nancy;
 using Nancy.ModelBinding;
 
 namespace BulkUpdateApi.Api
 {
-    // Request classes:
-    public class Tag
+    public class EntityRef
     {
         public string Id { get; set; }
         public string Value { get; set; }
@@ -19,34 +14,34 @@ namespace BulkUpdateApi.Api
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public Tag[] Tags { get; set; }
+        public EntityRef[] Tags { get; set; }
+        public PoolStatus[] PoolStatuses { get; set; }
     }
+
 
     public class PersonMatch
     {
         public string Name { get; set; }
         public int[] Tags { get; set; }
+        public PoolStatus[] PoolStatuses { get; set; }
+    }
+
+    public class PoolStatusMatch
+    {
+        public int PoolId { get; set; }
+        public string Status { get; set; }
+    }
+
+    public class PoolStatus
+    {
+        public EntityRef Pool { get; set; }
+        public string Status { get; set; }
     }
 
     public class BulkTagAdd
     {
         public PersonMatch Match { get; set; }
-        public Tag AddTag { get; set; }
-    }
-
-    public static class RequestToCommandTransform
-    {
-        public static UpdatePersonsTagsCommand GetCommand(BulkTagAdd requestBody)
-        {
-            return new UpdatePersonsTagsCommand(
-                Guid.NewGuid(),
-                new Domain.Tag(
-                    new Id<int>(int.Parse(requestBody.AddTag.Id)),
-                    new String50(requestBody.AddTag.Value)),
-                new UpdatePersonsTagsCommand.PersonMatch(
-                    requestBody.Match.Tags.Select(x => new Id<int>(x)))
-                );
-        }
+        public EntityRef AddTag { get; set; }
     }
 
     public class PersonModule : NancyModule
@@ -62,12 +57,22 @@ namespace BulkUpdateApi.Api
                     : HttpStatusCode.NotFound;
             };
 
+            Post["/api/person/search"] = parameters =>
+            {
+                var apiSearch = this.Bind<PersonMatch>();
+                var searchResult = ElasticsearchQueries.SearchPeople(apiSearch);
+                return !string.IsNullOrWhiteSpace(searchResult)
+                    ? Response.AsText(searchResult, "application/json")
+                    : HttpStatusCode.InternalServerError;
+            };
+
             Post["api/person"] = parameters =>
             {
                 var person = this.Bind<Person>();
                 var success = ElasticsearchQueries.CreatePerson(person);
                 return success ? HttpStatusCode.Created : HttpStatusCode.InternalServerError;
             };
+
 
             Post["/api/person/tag/"] = parameters =>
             {

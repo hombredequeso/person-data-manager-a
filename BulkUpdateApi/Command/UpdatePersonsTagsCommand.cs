@@ -26,15 +26,18 @@ namespace BulkUpdateApi.Command
         public Tag NewTag { get; private set; }
         public PersonMatch Matching { get; private set; }
 
-
         public class PersonMatch
         {
-            public PersonMatch(IEnumerable<Id<int>> tagIds)
+            public PersonMatch(
+                IEnumerable<Id<int>> tagIds, 
+                IEnumerable<PoolStatus> poolStatuses)
             {
+                PoolStatuses = poolStatuses.ToArray();
                 TagIds = tagIds.ToArray();
             }
 
             public Id<int>[] TagIds { get; private set; }
+            public PoolStatus[] PoolStatuses { get; private set; }
         }
     }
 }

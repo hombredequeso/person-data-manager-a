@@ -28,12 +28,12 @@ namespace BulkUpdateApi.Dal
             return r.Created;
         }
 
-
         public static bool UpdateMatchingPersonTags(UpdatePersonsTagsCommand cmd)
         {
             PostData<object> bodyx = GetUpdate(
                 cmd.Matching.TagIds.Select(x => x.Value).ToArray(),
-                cmd.NewTag.Id.Value, cmd.NewTag.Value.Value,
+                cmd.NewTag.Id.Value, 
+                cmd.NewTag.Value.Value,
                 cmd.CommandId);
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, bodyx);
@@ -52,19 +52,68 @@ namespace BulkUpdateApi.Dal
             return response.Success;
         }
 
-        public static JArray GetTermsFilterArray(int[] termsId)
+        public static string SearchPeople(PersonMatch apiSearch)
         {
-            IEnumerable<JObject> zz = termsId
-                .Select(x => new JObject
+            ElasticsearchResponse<byte[]> response =
+                ElasticsearchDb.Client.LowLevel.Search<byte[]>(new PostData<object>(GetSearchQuery(apiSearch)));
+            string jsonResponse = AsUtf8String(response.Body);
+            return response.Success ? jsonResponse : null;
+        }
+
+        public static string AsUtf8String(byte[] b)
+        {
+            return System.Text.Encoding.UTF8.GetString(b);
+        }
+
+        private static string GetSearchQuery(PersonMatch apiSearch)
+        {
+            var tagClauses = apiSearch.Tags.Select(ToTermTagId);
+            var nameMatch = ToMatch("name", apiSearch.Name);
+            var allCauses = tagClauses.Concat(new[] {nameMatch});
+            var mustArrayClauses = new JArray(allCauses);
+
+            string query = @"
                 {
-                    { "term", new JObject
-                        {
-                            {"tags.id", x.ToString()}
+                  ""query"": {
+                    ""bool"": {
+                      ""must"" : " +
+                      mustArrayClauses
+                      + @"
+                    }
+                  }
+                }";
+            return query;
+        }
+
+        public static JObject ToMatch(string field, string value)
+        {
+            return new JObject
+            {
+                {
+                    "match", new JObject
+                    {
+
+                        { field, new JObject
+                            {
+                                {  "query", value }
+                            }
                         }
                     }
                 }
-                );
-            return new JArray(zz);
+            };
+        }
+
+        public static JObject ToTermTagId(int tagId)
+        {
+            return new JObject
+            {
+                {
+                    "term", new JObject
+                    {
+                        {"tags.id", tagId.ToString()}
+                    }
+                }
+            };
         }
 
         public static JObject GetTag(int tagId, string tagValue)
@@ -96,7 +145,7 @@ namespace BulkUpdateApi.Dal
                               ""bool"": {
                                 ""must"":"
                                         + 
-                                        GetTermsFilterArray(tagIds)
+                                        new JArray(tagIds.Select(ToTermTagId))
                                         +
                               @"}
                             }
