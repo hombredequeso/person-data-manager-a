@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "POST http://localhost:8080/api/person/tag",
+			"name": "POST api/person/tag",
 			"request": {
 				"url": "http://localhost:8080/api/person/tag",
 				"method": "POST",
@@ -28,7 +28,7 @@
 			"response": []
 		},
 		{
-			"name": "GET http://localhost:8080/api/person/1",
+			"name": "GET api/person/1",
 			"request": {
 				"url": "http://localhost:8080/api/person/1",
 				"method": "GET",
@@ -39,7 +39,7 @@
 			"response": []
 		},
 		{
-			"name": "POST http://localhost:8080/api/person",
+			"name": "POST api/person",
 			"request": {
 				"url": "http://localhost:8080/api/person",
 				"method": "POST",
@@ -55,6 +55,26 @@
 					"raw": "{\n\t\"Id\": \"1\",\n\t\"Name\" : \"john smith\",\n\t\"Tags\" : [{\"id\":1, \"value\":\"tag1\"}, {\"id\":2, \"value\":\"tag2\"}]\n}"
 				},
 				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "POST api/person/search",
+			"request": {
+				"url": "http://localhost:8080/api/person/search",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"john\",\n\t\"tags\": [1,2]\n}"
+				},
+				"description": "Perform a search on people.\n(Is POST to allow for a body)"
 			},
 			"response": []
 		}
