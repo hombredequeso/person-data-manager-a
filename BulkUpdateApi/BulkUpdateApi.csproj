@@ -80,10 +80,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\PersonModule.cs" />
-    <Compile Include="Api\RequestToCommandTransform.cs" />
-    <Compile Include="Command\CreatePersonCommand.cs" />
     <Compile Include="Dal\ElasticsearchDb.cs" />
     <Compile Include="Dal\ElasticsearchQueries.cs" />
+    <Compile Include="Domain\GeoCoord.cs" />
     <Compile Include="Domain\Id.cs" />
     <Compile Include="Domain\IntId.cs" />
     <Compile Include="Domain\Pool.cs" />
@@ -99,7 +98,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

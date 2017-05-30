@@ -10,14 +10,20 @@ namespace BulkUpdateApi.Api
         public string Value { get; set; }
     }
 
+    public class Coord
+    {
+        public decimal Lat { get; set; }
+        public decimal Lon { get; set; }
+    }
+
     public class Person
     {
         public string Id { get; set; }
         public string Name { get; set; }
         public EntityRef[] Tags { get; set; }
         public PoolStatus[] PoolStatuses { get; set; }
+        public Coord Coord { get; set; }
     }
-
 
     public class PersonMatch
     {
@@ -69,16 +75,15 @@ namespace BulkUpdateApi.Api
             Post["api/person"] = parameters =>
             {
                 var person = this.Bind<Person>();
-                var success = ElasticsearchQueries.CreatePerson(person);
+                var success = ElasticsearchQueries.Execute(person);
                 return success ? HttpStatusCode.Created : HttpStatusCode.InternalServerError;
             };
 
 
             Post["/api/person/tag/"] = parameters =>
             {
-                var requestBody = this.Bind<BulkTagAdd>();
-                var cmd = RequestToCommandTransform.GetCommand(requestBody);
-                var success = ElasticsearchQueries.UpdateMatchingPersonTags(cmd);
+                var bulkTagAdd = this.Bind<BulkTagAdd>();
+                var success = ElasticsearchQueries.UpdateMatchingPersonTags(bulkTagAdd);
                 return success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
             };
         }

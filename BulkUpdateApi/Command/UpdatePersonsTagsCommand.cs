@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BulkUpdateApi.Domain;
+using BulkUpdateApi.Api;
 
 namespace BulkUpdateApi.Command
 {
@@ -9,7 +9,7 @@ namespace BulkUpdateApi.Command
     {
         public UpdatePersonsTagsCommand(
             Guid commandId, 
-            Tag newTag, 
+            EntityRef newTag, 
             PersonMatch matching)
         {
             if (newTag == null) throw new ArgumentNullException(nameof(newTag));
@@ -23,20 +23,20 @@ namespace BulkUpdateApi.Command
         }
 
         public Guid CommandId { get; private set; }
-        public Tag NewTag { get; private set; }
+        public EntityRef NewTag { get; private set; }
         public PersonMatch Matching { get; private set; }
 
         public class PersonMatch
         {
             public PersonMatch(
-                IEnumerable<Id<int>> tagIds, 
+                IEnumerable<int> tagIds, 
                 IEnumerable<PoolStatus> poolStatuses)
             {
                 PoolStatuses = poolStatuses.ToArray();
                 TagIds = tagIds.ToArray();
             }
 
-            public Id<int>[] TagIds { get; private set; }
+            public int[] TagIds { get; private set; }
             public PoolStatus[] PoolStatuses { get; private set; }
         }
     }

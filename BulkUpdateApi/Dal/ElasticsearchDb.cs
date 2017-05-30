@@ -13,6 +13,12 @@ namespace BulkUpdateApi.Dal
         {
             var node = new Uri("http://localhost:9200");
             var settings = new ConnectionSettings(node);
+            WriteElasticsearchRequestsToDebug(settings);
+            Client = new ElasticClient(settings);
+        }
+
+        private static void WriteElasticsearchRequestsToDebug(ConnectionSettings settings)
+        {
             settings.DisableDirectStreaming()
                 .OnRequestCompleted(details =>
                 {
@@ -24,8 +30,6 @@ namespace BulkUpdateApi.Dal
                         Debug.WriteLine(Encoding.UTF8.GetString(details.ResponseBodyInBytes));
                 })
                 .PrettyJson();
-
-            Client = new ElasticClient(settings);
         }
     }
 }

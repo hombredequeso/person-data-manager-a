@@ -21,7 +21,7 @@ namespace BulkUpdateApi.Dal
             return response.Found ? response.Source : null;
         }
 
-        public static bool CreatePerson(Person person)
+        public static bool Execute(Person person)
         {
             IIndexResponse r = ElasticsearchDb.Client.Index(person, 
                 x => x.Index(PersonIndex).Type(PersonType));
@@ -31,9 +31,9 @@ namespace BulkUpdateApi.Dal
         public static bool UpdateMatchingPersonTags(UpdatePersonsTagsCommand cmd)
         {
             PostData<object> bodyx = GetUpdate(
-                cmd.Matching.TagIds.Select(x => x.Value).ToArray(),
-                cmd.NewTag.Id.Value, 
-                cmd.NewTag.Value.Value,
+                cmd.Matching.TagIds.ToArray(),
+                Int32.Parse(cmd.NewTag.Id), 
+                cmd.NewTag.Value,
                 cmd.CommandId);
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, bodyx);
