@@ -21,7 +21,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"addTag\" :{\n\t\t\"id\": 7878,\n\t\t\"value\": \"anothertag\"\n\t},\n\t\"match\": {\n\t\t\"name\" : \"anything\",\n\t\t\"tags\": [1,2]\n\t}\n}"
+					"raw": "{\n\t\"addTag\" : \"tag11\",\n\t\"match\": {\n\t\t\"name\" : \"bob\",\n\t\t\"tags\": []\n\t}\n}"
 				},
 				"description": "Bulk update of tags for people matching a query."
 			},
@@ -52,7 +52,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"Id\": \"1\",\n\t\"Name\" : \"john smith\",\n\t\"Tags\" : [{\"id\":1, \"value\":\"tag1\"}, {\"id\":2, \"value\":\"tag2\"}]\n}"
+					"raw": "{\n\t\"id\": 1,\n\t\"Name\" : \"bob mcbob\",\n\t\"Tags\" : [\"tag1\", \"tag2\"]\n}"
 				},
 				"description": ""
 			},
@@ -72,7 +72,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"john\",\n\t\"tags\": [1,2]\n}"
+					"raw": "{\n\t\"name\": \"bob\",\n\t\"tags\": [\"tag1\"]\n}"
 				},
 				"description": "Perform a search on people.\n(Is POST to allow for a body)"
 			},

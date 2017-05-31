@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using BulkUpdateApi.Api;
-using BulkUpdateApi.Command;
 using Elasticsearch.Net;
 using Nest;
 using Newtonsoft.Json.Linq;
@@ -21,31 +19,18 @@ namespace BulkUpdateApi.Dal
             return response.Found ? response.Source : null;
         }
 
-        public static bool Execute(Person person)
+        public static bool IndexPerson(Person person)
         {
             IIndexResponse r = ElasticsearchDb.Client.Index(person, 
                 x => x.Index(PersonIndex).Type(PersonType));
             return r.Created;
         }
 
-        public static bool UpdateMatchingPersonTags(UpdatePersonsTagsCommand cmd)
-        {
-            PostData<object> bodyx = GetUpdate(
-                cmd.Matching.TagIds.ToArray(),
-                Int32.Parse(cmd.NewTag.Id), 
-                cmd.NewTag.Value,
-                cmd.CommandId);
-            ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
-                .UpdateByQuery<byte[]>(PersonIndex, bodyx);
-            return response.Success;
-        }
-
         public static bool UpdateMatchingPersonTags(BulkTagAdd requestBody)
         {
             PostData<object> bodyx = GetUpdate(
                 requestBody.Match.Tags, 
-                Int32.Parse(requestBody.AddTag.Id), 
-                requestBody.AddTag.Value,
+                requestBody.AddTag,
                 Guid.NewGuid());
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, bodyx);
@@ -67,7 +52,7 @@ namespace BulkUpdateApi.Dal
 
         private static string GetSearchQuery(PersonMatch apiSearch)
         {
-            var tagClauses = apiSearch.Tags.Select(ToTermTagId);
+            var tagClauses = apiSearch.Tags.Select(ToTermTag);
             var nameMatch = ToMatch("name", apiSearch.Name);
             var allCauses = tagClauses.Concat(new[] {nameMatch});
             var mustArrayClauses = new JArray(allCauses);
@@ -103,14 +88,14 @@ namespace BulkUpdateApi.Dal
             };
         }
 
-        public static JObject ToTermTagId(int tagId)
+        public static JObject ToTermTag(string tag)
         {
             return new JObject
             {
                 {
                     "term", new JObject
                     {
-                        {"tags.id", tagId.ToString()}
+                        {"tags", tag}
                     }
                 }
             };
@@ -135,7 +120,7 @@ namespace BulkUpdateApi.Dal
             return newScript.Replace(Environment.NewLine, "");
         }
 
-        public static string GetUpdate(int[] tagIds, int tagId, string tagValue, Guid operationId)
+        public static string GetUpdate(string[] tags, string tagValue, Guid operationId)
         {
             var query = @"
                 {
@@ -145,7 +130,7 @@ namespace BulkUpdateApi.Dal
                               ""bool"": {
                                 ""must"":"
                                         + 
-                                        new JArray(tagIds.Select(ToTermTagId))
+                                        new JArray(tags.Select(ToTermTag))
                                         +
                               @"}
                             }
@@ -155,21 +140,13 @@ namespace BulkUpdateApi.Dal
                     ""inline"": "" " + GetScript() + @" "",
                     ""lang"": ""painless"",
                     ""params"": {
-                      ""newtag"" :" + GetTag(tagId, tagValue) + @",
+                      ""newtag"" : """ + tagValue + @""",
                       ""operationId"" : """ + operationId + @"""
                     }
                   }
                 }
                 ";
             return query;
-        }
-
-        public static bool UpdateMatchingPersonTags_ItsWorking(BulkTagAdd requestBody)
-        {
-            PostData<object> bodyx = $"{{ \"query\": {{ \"match\": {{ \"tags.id\" : \"1\" }} }}, \"script\": {{ \"inline\": \"ctx._source.tags.add(params.newtag)\", \"lang\": \"painless\", \"params\": {{ \"newtag\" : {{\"id\":\"{requestBody.AddTag.Id}\", \"value\":\"{requestBody.AddTag.Value}\"}} }} }}}}";
-            var response = ElasticsearchDb.Client.LowLevel
-                .UpdateByQuery<byte[]>(PersonIndex, bodyx);
-            return response.Success;
         }
     }
 }
