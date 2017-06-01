@@ -17,7 +17,18 @@ namespace BulkUpdateApi.Api
         public string Email { get; set; }
         public string[] Tags { get; set; }
         public PoolStatus[] PoolStatuses { get; set; }
+        public PersonGeoData Geo { get; set; }
+    }
+
+    public class PersonGeoData
+    {
         public Coord Coord { get; set; }
+    }
+
+    public class GeoDistance
+    {
+        public Coord Coord { get; set; }
+        public decimal Distance { get; set; }
     }
 
     public class PersonMatch
@@ -25,6 +36,7 @@ namespace BulkUpdateApi.Api
         public string Name { get; set; }
         public string[] Tags { get; set; }
         public PoolStatus[] PoolStatuses { get; set; }
+        public GeoDistance Near { get; set; }
     }
 
     public class PoolStatusMatch

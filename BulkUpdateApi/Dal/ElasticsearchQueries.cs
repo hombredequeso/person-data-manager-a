@@ -22,8 +22,18 @@ namespace BulkUpdateApi.Dal
 
         public static bool IndexPerson(Person person)
         {
-            IIndexResponse r = ElasticsearchDb.Client.Index(person, 
-                x => x.Index(PersonIndex).Type(PersonType));
+            Func<IndexDescriptor<Person>, IIndexRequest> selector =
+                x =>
+                {
+                    IndexDescriptor<Person> result =  x.Index(PersonIndex).Type(PersonType);
+                    if (!string.IsNullOrWhiteSpace(person.Id))
+                    {
+                        result = result.Id(person.Id);
+                    }
+                    return result;
+                };
+
+            IIndexResponse r = ElasticsearchDb.Client.Index(person, selector);
             return r.Created;
         }
 
@@ -41,7 +51,8 @@ namespace BulkUpdateApi.Dal
         public static string SearchPeople(PersonMatch apiSearch)
         {
             ElasticsearchResponse<byte[]> response =
-                ElasticsearchDb.Client.LowLevel.Search<byte[]>(new PostData<object>(GetSearchQuery(apiSearch)));
+                ElasticsearchDb.Client.LowLevel.Search<byte[]>("person", "person",
+                    new PostData<object>(GetSearchQuery(apiSearch)));
             string jsonResponse = AsUtf8String(response.Body);
             return response.Success ? jsonResponse : null;
         }
@@ -61,13 +72,22 @@ namespace BulkUpdateApi.Dal
 
             var mustArrayClauses = new JArray(mustClauses);
 
+            List<JObject> filters = new List<JObject>();
+            if (apiSearch.Near != null)
+            {
+                JObject geoFilter = ToGeoDistance(apiSearch.Near.Coord, apiSearch.Near.Distance);
+                filters.Add(geoFilter);
+            }
+            var filterClauses = new JArray(filters);
+
             string query = @"
                 {
                   ""query"": {
                     ""bool"": {
                       ""must"" : " +
                       mustArrayClauses
-                      + @"
+                      + @",
+                    ""filter"" : " + filterClauses + @"
                     }
                   }
                 }";
@@ -87,6 +107,24 @@ namespace BulkUpdateApi.Dal
                                 {  "query", value }
                             }
                         }
+                    }
+                }
+            };
+        }
+
+        public static JObject ToGeoDistance(Coord geoCoord, decimal distKm)
+        {
+            return new JObject
+            {
+                {
+                    "geo_distance", new JObject
+                    {
+                        {"distance" , $"{distKm}km"},
+                        {"geo.coord" , new JObject()
+                            {
+                                {"lat", geoCoord.Lat},
+                                {"lon" , geoCoord.Lon}}
+                            }
                     }
                 }
             };

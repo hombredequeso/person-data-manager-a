@@ -21,7 +21,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"addTag\" : \"tag11\",\n\t\"match\": {\n\t\t\"name\" : \"bob\",\n\t\t\"tags\": []\n\t}\n}"
+					"raw": "{\n\t\"addTag\" : \"itemNew\",\n\t\"match\": {\n\t\t\"name\" : \"bob\",\n\t\t\"tags\": [\"item3\"]\n\t}\n}"
 				},
 				"description": "Bulk update of tags for people matching a query."
 			},
@@ -30,7 +30,7 @@
 		{
 			"name": "GET api/person/1",
 			"request": {
-				"url": "http://localhost:8080/api/person/1",
+				"url": "http://localhost:8080/api/person/3",
 				"method": "GET",
 				"header": [],
 				"body": {},
@@ -52,7 +52,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"id\": 1,\n\t\"Name\" : \"bob mcbob\",\n\t\"Tags\" : [\"tag1\", \"tag2\"]\n}"
+					"raw": "{\n\t\"id\": 3,\n\t\"name\" : \"bob mcbob\",\n\t\"email\" : \"bob@gmail.com\",\n\t\"tags\" : [\"item1\", \"item2\", \"item3\"],\n    \"poolStatuses\": [],\n    \"geo\": {\n      \"coord\": {\n        \"lat\": -37.80710456081047,\n        \"lon\": 144.96544319139053\n      }\n    }\n}"
 				},
 				"description": ""
 			},
@@ -72,7 +72,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"bob\",\n\t\"tags\": [\"tag1\"]\n}"
+					"raw": "{\n\t\"name\": \"bob\",\n\t\"tags\": [\"item3\"],\n\t\"near\": {\n\t\t\"coord\": {\n\t\t\t\"lat\": -37.814,\n\t\t\t\"lon\": 144.963\n\t\t},\n\t\t\"distance\" : 40\n\t}\n}"
 				},
 				"description": "Perform a search on people.\n(Is POST to allow for a body)"
 			},

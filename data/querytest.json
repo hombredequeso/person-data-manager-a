@@ -1,0 +1,47 @@
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "term": {
+                        "tags": "item4"
+                    }
+                },
+                {
+                    "match": {
+                        "name": {
+                            "query": null
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+
+
+
+POST person/_search
+{
+  "query": {
+    "bool": {
+      "must" : [
+        {
+          "match": {
+            "tags": {"query":"item9"}
+          }
+        }
+      ],
+      "filter" : {
+          "geo_distance" : {
+              "distance" : "5km",
+              "geo.coord" : {
+                  "lat" : -37.814,
+                  "lon" : 144.963
+              }
+          }
+      }      
+    }
+  }
+}
