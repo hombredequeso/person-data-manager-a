@@ -80,7 +80,7 @@ namespace BulkUpdateApi.Dal
                 filters.Add(geoFilter);
             }
             var filterClauses = new JArray(filters);
-            var aggregations = GetAggregations();
+            var aggregations = GetAggregations(apiSearch);
 
             var query = @"
                 {
@@ -98,17 +98,46 @@ namespace BulkUpdateApi.Dal
             return query;
         }
 
-        public static JObject GetAggregations()
+        public static JObject GetAggregations(PersonMatch apiSearch)
         {
             return new JObject
                 {
                     {
-                        "operators", new JObject
+                        "tagAggregations", new JObject
                         {
                             {
                                 "terms", new JObject
                                 {
                                     {"field", "tags.keyword"}
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "geoAggregations", new JObject
+                        {
+                            {
+                                "geo_distance", new JObject
+                                {
+                                    {
+                                        "field", "geo.coord"
+                                    },
+                                    {
+                                        "origin", $"{apiSearch.Near.Coord.Lat}, {apiSearch.Near.Coord.Lon}"
+                                    },
+                                    {
+                                        "unit", "km"
+                                    },
+                                    {
+                                        "ranges", new JArray
+                                        {
+                                            new JObject{{ "to", 10}},
+                                            new JObject{{ "from", 10}, {"to", 20} },
+                                            new JObject{{ "from", 20}, {"to", 50} },
+                                            new JObject{{ "from", 50}, {"to", 500} },
+                                            new JObject{{ "from", 500}},
+                                        }
+                                    }
                                 }
                             }
                         }
