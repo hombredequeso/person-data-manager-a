@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using BulkUpdateApi.Api;
 using Elasticsearch.Net;
 using Nest;
@@ -25,7 +26,7 @@ namespace BulkUpdateApi.Dal
             Func<IndexDescriptor<Person>, IIndexRequest> selector =
                 x =>
                 {
-                    IndexDescriptor<Person> result =  x.Index(PersonIndex).Type(PersonType);
+                    var result = x.Index(PersonIndex).Type(PersonType);
                     if (!string.IsNullOrWhiteSpace(person.Id))
                     {
                         result = result.Id(person.Id);
@@ -33,38 +34,38 @@ namespace BulkUpdateApi.Dal
                     return result;
                 };
 
-            IIndexResponse r = ElasticsearchDb.Client.Index(person, selector);
+            var r = ElasticsearchDb.Client.Index(person, selector);
             return r.Created;
         }
 
         public static bool UpdateMatchingPersonTags(BulkTagAdd requestBody)
         {
             PostData<object> bodyx = GetUpdate(
-                requestBody.Match.Tags, 
+                requestBody.Match.Tags,
                 requestBody.AddTag,
                 Guid.NewGuid());
-            ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
+            var response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, bodyx);
             return response.Success;
         }
 
         public static string SearchPeople(PersonMatch apiSearch)
         {
-            ElasticsearchResponse<byte[]> response =
+            var response =
                 ElasticsearchDb.Client.LowLevel.Search<byte[]>("person", "person",
                     new PostData<object>(GetSearchQuery(apiSearch)));
-            string jsonResponse = AsUtf8String(response.Body);
+            var jsonResponse = AsUtf8String(response.Body);
             return response.Success ? jsonResponse : null;
         }
 
         public static string AsUtf8String(byte[] b)
         {
-            return System.Text.Encoding.UTF8.GetString(b);
+            return Encoding.UTF8.GetString(b);
         }
 
         private static string GetSearchQuery(PersonMatch apiSearch)
         {
-            List<JObject> mustClauses = new List<JObject>();
+            var mustClauses = new List<JObject>();
             if (apiSearch.Tags.Any())
                 mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
             if (!string.IsNullOrWhiteSpace(apiSearch.Name))
@@ -72,26 +73,47 @@ namespace BulkUpdateApi.Dal
 
             var mustArrayClauses = new JArray(mustClauses);
 
-            List<JObject> filters = new List<JObject>();
+            var filters = new List<JObject>();
             if (apiSearch.Near != null)
             {
-                JObject geoFilter = ToGeoDistance(apiSearch.Near.Coord, apiSearch.Near.Distance);
+                var geoFilter = ToGeoDistance(apiSearch.Near.Coord, apiSearch.Near.Distance);
                 filters.Add(geoFilter);
             }
             var filterClauses = new JArray(filters);
+            var aggregations = GetAggregations();
 
-            string query = @"
+            var query = @"
                 {
                   ""query"": {
                     ""bool"": {
                       ""must"" : " +
-                      mustArrayClauses
-                      + @",
+                        mustArrayClauses
+                        + @",
                     ""filter"" : " + filterClauses + @"
                     }
-                  }
+                  }, 
+                  ""aggs"":  "
+                    + aggregations + @"
                 }";
             return query;
+        }
+
+        public static JObject GetAggregations()
+        {
+            return new JObject
+                {
+                    {
+                        "operators", new JObject
+                        {
+                            {
+                                "terms", new JObject
+                                {
+                                    {"field", "tags.keyword"}
+                                }
+                            }
+                        }
+                    }
+                };
         }
 
         public static JObject ToMatch(string field, string value)
@@ -101,10 +123,10 @@ namespace BulkUpdateApi.Dal
                 {
                     "match", new JObject
                     {
-
-                        { field, new JObject
+                        {
+                            field, new JObject
                             {
-                                {  "query", value }
+                                {"query", value}
                             }
                         }
                     }
@@ -119,12 +141,14 @@ namespace BulkUpdateApi.Dal
                 {
                     "geo_distance", new JObject
                     {
-                        {"distance" , $"{distKm}km"},
-                        {"geo.coord" , new JObject()
+                        {"distance", $"{distKm}km"},
+                        {
+                            "geo.coord", new JObject
                             {
                                 {"lat", geoCoord.Lat},
-                                {"lon" , geoCoord.Lon}}
+                                {"lon", geoCoord.Lon}
                             }
+                        }
                     }
                 }
             };
@@ -147,8 +171,8 @@ namespace BulkUpdateApi.Dal
         {
             return new JObject
             {
-                {"id", tagId },
-                {"value" , tagValue}
+                {"id", tagId},
+                {"value", tagValue}
             };
         }
 
@@ -171,10 +195,10 @@ namespace BulkUpdateApi.Dal
                             ""filter"": {
                               ""bool"": {
                                 ""must"":"
-                                        + 
-                                        new JArray(tags.Select(ToTermTag))
-                                        +
-                              @"}
+                        +
+                        new JArray(tags.Select(ToTermTag))
+                        +
+                        @"}
                             }
                         }
                     },
