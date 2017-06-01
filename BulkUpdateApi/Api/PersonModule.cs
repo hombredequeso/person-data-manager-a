@@ -14,6 +14,7 @@ namespace BulkUpdateApi.Api
     {
         public string Id { get; set; }
         public string Name { get; set; }
+        public string Email { get; set; }
         public string[] Tags { get; set; }
         public PoolStatus[] PoolStatuses { get; set; }
         public Coord Coord { get; set; }

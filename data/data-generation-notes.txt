@@ -1,0 +1,22 @@
+To generate lots of data:
+
+In elasticsearch:
+
+DELETE person
+
+PUT person
+{
+  "mappings": {
+    "person" : {
+        ...
+
+
+In cmd:
+markc@PU-LAP-503 c:\Code\projects\person-random-data-generator\util
+> node create-people.js --generator ./bulk-update-person-generator-1.js --count 1000 > bulk-update.data.json
+
+In bash:
+markc@PU-LAP-503 MINGW64 /c/Code/projects/person-random-data-generator/util (master)
+$ cat bulk-update.data.json | jq -c '.[] | {"index": {"_index": "person", "_type": "person"}}, .' | curl -XPOST localhost:9200/_bulk --data-binary @-
+
+

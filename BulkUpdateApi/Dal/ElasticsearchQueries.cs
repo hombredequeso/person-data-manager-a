@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BulkUpdateApi.Api;
 using Elasticsearch.Net;
@@ -52,10 +53,13 @@ namespace BulkUpdateApi.Dal
 
         private static string GetSearchQuery(PersonMatch apiSearch)
         {
-            var tagClauses = apiSearch.Tags.Select(ToTermTag);
-            var nameMatch = ToMatch("name", apiSearch.Name);
-            var allCauses = tagClauses.Concat(new[] {nameMatch});
-            var mustArrayClauses = new JArray(allCauses);
+            List<JObject> mustClauses = new List<JObject>();
+            if (apiSearch.Tags.Any())
+                mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
+            if (!string.IsNullOrWhiteSpace(apiSearch.Name))
+                mustClauses.Add(ToMatch("name", apiSearch.Name));
+
+            var mustArrayClauses = new JArray(mustClauses);
 
             string query = @"
                 {
