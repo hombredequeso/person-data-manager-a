@@ -72,9 +72,29 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"bob\",\n\t\"tags\": [\"item3\"],\n\t\"near\": {\n\t\t\"coord\": {\n\t\t\t\"lat\": -37.814,\n\t\t\t\"lon\": 144.963\n\t\t},\n\t\t\"distance\" : 40\n\t}\n}"
+					"raw": "{\n\t\"name\": \"\",\n\t\"tags\": [\"item3\"],\n\t\"near\": {\n\t\t\"coord\": {\n\t\t\t\"lat\": -37.814,\n\t\t\t\"lon\": 144.963\n\t\t},\n\t\t\"distance\" : 40\n\t}\n}"
 				},
 				"description": "Perform a search on people.\n(Is POST to allow for a body)"
+			},
+			"response": []
+		},
+		{
+			"name": "POST /api/person/morelike",
+			"request": {
+				"url": "http://localhost:8080/api/person/morelike",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[ \"AVxiZUFgjzAjYdQ6hWtM\" ]"
+				},
+				"description": ""
 			},
 			"response": []
 		}

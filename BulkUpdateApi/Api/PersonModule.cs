@@ -57,6 +57,7 @@ namespace BulkUpdateApi.Api
         public string AddTag { get; set; }
     }
 
+
     public class PersonModule : NancyModule
     {
         public PersonModule()
@@ -81,6 +82,15 @@ namespace BulkUpdateApi.Api
             {
                 var apiSearch = this.Bind<PersonMatch>();
                 var searchResult = ElasticsearchQueries.SearchPeople(apiSearch);
+                return !string.IsNullOrWhiteSpace(searchResult)
+                    ? Response.AsText(searchResult, "application/json")
+                    : HttpStatusCode.InternalServerError;
+            };
+
+            Post["/api/person/morelike"] = parameters =>
+            {
+                var apiSearch = this.Bind<string[]>();
+                var searchResult = ElasticsearchQueries.MoreLikePeople(apiSearch);
                 return !string.IsNullOrWhiteSpace(searchResult)
                     ? Response.AsText(searchResult, "application/json")
                     : HttpStatusCode.InternalServerError;

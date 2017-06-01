@@ -58,6 +58,42 @@ namespace BulkUpdateApi.Dal
             return response.Success ? jsonResponse : null;
         }
 
+        public static string MoreLikePeople(string[] ids)
+        {
+            var response =
+                ElasticsearchDb.Client.LowLevel.Search<byte[]>("person", "person",
+                    new PostData<object>(GetMoreLikeQuery(ids)));
+            var jsonResponse = AsUtf8String(response.Body);
+            return response.Success ? jsonResponse : null;
+        }
+
+        private static string GetMoreLikeQuery(string[] ids)
+        {
+            var query = @"
+                {
+                  ""query"": {
+                    ""more_like_this"": {
+                      ""fields"" : [""tags""],
+                        ""like"" : " + GetIdArray(ids) + @",
+                        ""min_term_freq"":  1,
+                        ""max_query_terms"": 12
+                    }
+                  }
+                }";
+            return query;
+        }
+
+        public static JArray GetIdArray(string[] ids)
+        {
+            var result = ids.Select(x => new JObject
+            {
+                {"_index", "person"},
+                {"_type", "person"},
+                {"_id", x}
+            });
+            return new JArray(result);
+        }
+
         public static string AsUtf8String(byte[] b)
         {
             return Encoding.UTF8.GetString(b);
