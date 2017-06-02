@@ -134,51 +134,74 @@ namespace BulkUpdateApi.Dal
             return query;
         }
 
-        public static JObject GetAggregations(PersonMatch apiSearch)
+        public static bool SearchOnGeoCoord(PersonMatch apiSearch)
         {
-            return new JObject
+            return (apiSearch?.Near?.Coord != null);
+        }
+
+        public static JProperty GetGeoAggregation(Coord coord)
+        {
+            JProperty result = new JProperty(
+                "geoAggregations",
+                new JObject {
                 {
+                    "geo_distance", new JObject
                     {
-                        "tagAggregations", new JObject
                         {
-                            {
-                                "terms", new JObject
-                                {
-                                    {"field", "tags.keyword"}
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "geoAggregations", new JObject
+                            "field", "geo.coord"
+                        },
                         {
+                            "origin", $"{coord.Lat}, {coord.Lon}"
+                        },
+                        {
+                            "unit", "km"
+                        },
+                        {
+                            "ranges", new JArray
                             {
-                                "geo_distance", new JObject
-                                {
-                                    {
-                                        "field", "geo.coord"
-                                    },
-                                    {
-                                        "origin", $"{apiSearch.Near.Coord.Lat}, {apiSearch.Near.Coord.Lon}"
-                                    },
-                                    {
-                                        "unit", "km"
-                                    },
-                                    {
-                                        "ranges", new JArray
-                                        {
-                                            new JObject{{ "to", 10}},
-                                            new JObject{{ "from", 10}, {"to", 20} },
-                                            new JObject{{ "from", 20}, {"to", 50} },
-                                            new JObject{{ "from", 50}, {"to", 500} },
-                                            new JObject{{ "from", 500}},
-                                        }
-                                    }
-                                }
+                                new JObject {{"to", 10}},
+                                new JObject {{"from", 10}, {"to", 20}},
+                                new JObject {{"from", 20}, {"to", 50}},
+                                new JObject {{"from", 50}, {"to", 500}},
+                                new JObject {{"from", 500}},
                             }
                         }
                     }
-                };
+                }
+            });
+            return result;
+        }
+
+        public static JProperty GetTagAggregations()
+        {
+            return new JProperty(
+                "tagAggs",
+                new JObject
+                {
+                    {
+                        "terms", new JObject
+                        {
+                            {"field", "tags.keyword"}
+                        }
+                    }
+                });
+        }
+
+        public static JObject AddIf(JObject o, bool conditional, Func<JProperty> p)
+        {
+            if (conditional)
+                o.Add(p());
+            return o;
+        }
+
+        public static JObject GetAggregations(PersonMatch apiSearch)
+        {
+            var aggs = new JObject();
+            aggs.Add(GetTagAggregations());
+            return AddIf(
+                aggs, 
+                SearchOnGeoCoord(apiSearch), 
+                () => GetGeoAggregation(apiSearch.Near.Coord));
         }
 
         public static JObject ToMatch(string field, string value)
