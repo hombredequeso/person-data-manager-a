@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace BulkUpdateApi.Domain
+namespace Hdq.PersonDataManager.Api.Domain
 {
     public class PoolStatus
     {

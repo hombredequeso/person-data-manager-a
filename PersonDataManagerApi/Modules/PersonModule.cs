@@ -1,8 +1,8 @@
-﻿using BulkUpdateApi.Dal;
+﻿using Hdq.PersonDataManager.Api.Dal;
 using Nancy;
 using Nancy.ModelBinding;
 
-namespace BulkUpdateApi.Api
+namespace Hdq.PersonDataManager.Api.Modules
 {
     public class Coord
     {

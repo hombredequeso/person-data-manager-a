@@ -1,4 +1,4 @@
-﻿namespace BulkUpdateApi.Domain
+﻿namespace Hdq.PersonDataManager.Api.Domain
 {
     public enum Status
     {

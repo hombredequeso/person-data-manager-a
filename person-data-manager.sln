@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkUpdateApi", "BulkUpdateApi\BulkUpdateApi.csproj", "{2B569B6C-2E89-462A-B9C7-E94557BE9B5A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulkUpdateApiTests", "BulkUpdateApiTests\BulkUpdateApiTests.csproj", "{1A290B8B-793C-49DA-AA84-CE7DBBA40308}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonDataManagerApi", "PersonDataManagerApi\PersonDataManagerApi.csproj", "{2B569B6C-2E89-462A-B9C7-E94557BE9B5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +15,6 @@ Global
 		{2B569B6C-2E89-462A-B9C7-E94557BE9B5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B569B6C-2E89-462A-B9C7-E94557BE9B5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B569B6C-2E89-462A-B9C7-E94557BE9B5A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A290B8B-793C-49DA-AA84-CE7DBBA40308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A290B8B-793C-49DA-AA84-CE7DBBA40308}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A290B8B-793C-49DA-AA84-CE7DBBA40308}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A290B8B-793C-49DA-AA84-CE7DBBA40308}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

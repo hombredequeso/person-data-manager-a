@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 
-namespace BulkUpdateApi.Domain
+namespace Hdq.PersonDataManager.Api.Domain
 {
-    public class Pool
+    public class Tag
     {
-        public Pool(Id<int> id, String50 value)
+        public Tag(Id<int> id, String50 value)
         {
             if (id == null) throw new ArgumentNullException(nameof(id));
             if (value == null) throw new ArgumentNullException(nameof(value));

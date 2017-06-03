@@ -1,6 +1,9 @@
-# Prototype: Bulk Updating of People in Elasticsearch
+# Prototype: Person Data Manager in Elasticsearch
 
-Prototyping use of the bulk update functionality in Elasticsearch 5.
+A project for managing person data, for the purposes of prototyping various technologies.
+
+Example of technologies and functions getting prototyped:
+* Elasticsearch 5.x, bulk update functionality.
 
 ## Notes
 

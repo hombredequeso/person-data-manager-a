@@ -1,6 +1,6 @@
 ﻿using Nancy;
 
-namespace BulkUpdateApi
+namespace Hdq.PersonDataManager.Api
 {
         public class IndexModule : NancyModule
         {

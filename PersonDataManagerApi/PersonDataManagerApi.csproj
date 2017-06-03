@@ -7,8 +7,8 @@
     <ProjectGuid>{2B569B6C-2E89-462A-B9C7-E94557BE9B5A}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BulkUpdateApi</RootNamespace>
-    <AssemblyName>BulkUpdateApi</AssemblyName>
+    <RootNamespace>Hdq.PersonDataManager.Api</RootNamespace>
+    <AssemblyName>PersonDataManagerApi</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -79,7 +80,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\PersonModule.cs" />
+    <Compile Include="Modules\PersonModule.cs" />
     <Compile Include="Dal\ElasticsearchDb.cs" />
     <Compile Include="Dal\ElasticsearchQueries.cs" />
     <Compile Include="Domain\GeoCoord.cs" />

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BulkUpdateApi.Api;
 using Elasticsearch.Net;
+using Hdq.PersonDataManager.Api.Modules;
 using Nest;
 using Newtonsoft.Json.Linq;
 
-namespace BulkUpdateApi.Dal
+namespace Hdq.PersonDataManager.Api.Dal
 {
     public static class ElasticsearchQueries
     {

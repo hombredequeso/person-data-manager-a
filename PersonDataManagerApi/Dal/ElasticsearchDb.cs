@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using Nest;
 
-namespace BulkUpdateApi.Dal
+namespace Hdq.PersonDataManager.Api.Dal
 {
     public static class ElasticsearchDb
     {

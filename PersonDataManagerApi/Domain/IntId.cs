@@ -1,6 +1,6 @@
 using System;
 
-namespace BulkUpdateApi.Domain
+namespace Hdq.PersonDataManager.Api.Domain
 {
     public class IntId : Id<int>
     {
