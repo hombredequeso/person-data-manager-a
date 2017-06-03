@@ -22,6 +22,25 @@ To run requires a local instance of Elasticsearch 5+ to be running.
 
 This means Visual Studio needs to be run as admin, or follow the ["Running without admin" instructions](https://github.com/NancyFx/Nancy/wiki/Hosting-nancy-with-owin#katana---httplistener-selfhost)
 
+## Running Tests
+
+Api tests using the [frisbyjs](http://frisbyjs.com/) nodejs framework are available. To run them, ensure Elasticsearch is running at localhost:9200.
+To run the tests the first time:
+
+```
+npm install -g jasmine-node
+cd api-test
+npm install
+jasmine-node spec
+```
+
+There-after:
+```
+cd api-test
+jasmine-node spec
+
+```
+
 ## Generating Sample Data
 
 Sample data for this project can be generated in the following way.

@@ -1,0 +1,14 @@
+{
+  "name": "person-data-manager-api-test",
+  "version": "1.0.0",
+  "description": "Tests for the person-data-manager project api.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mark Cheeseman",
+  "license": "MIT",
+  "dependencies": {
+    "frisby": "^0.8.5"
+  }
+}
