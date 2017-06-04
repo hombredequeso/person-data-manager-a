@@ -16,11 +16,15 @@ Written using the [nancyfx](http://nancyfx.org/) web framework.
 
 ### Running Locally
 
-To run requires a local instance of Elasticsearch 5+ to be running.
+To run requires a local instance of Elasticsearch 5.+ to be running.
 
-[OWIN self-hosted](https://github.com/NancyFx/Nancy/wiki/Hosting-nancy-with-owin#katana---httplistener-selfhost)
+The api framework is written using the [nancyfx](http://nancyfx.org/) web framework and is [OWIN self-hosted](https://github.com/NancyFx/Nancy/wiki/Hosting-nancy-with-owin#katana---httplistener-selfhost)
 
 This means Visual Studio needs to be run as admin, or follow the ["Running without admin" instructions](https://github.com/NancyFx/Nancy/wiki/Hosting-nancy-with-owin#katana---httplistener-selfhost)
+
+### Postman
+
+The file data/person-data-manager.postman_collection.json contains a sample collection of sample api requests that can be loaded in to [Postman](https://www.getpostman.com/).
 
 ## Running Tests
 
