@@ -1,6 +1,6 @@
 var frisby = require('frisby');
 
-var testid = 100004;
+var testid = 100026;
 
 frisby.create('GET api/person/1')
   .get('http://localhost:8080/api/person/1')
@@ -29,7 +29,7 @@ frisby.create('POST api/person')
 
 
 frisby.create('POST api/person/search')
-    .post('http://localhost:8080/api/person', {
+    .post('http://localhost:8080/api/person/search', {
         "name": "bob",
         "tags": ["item3"],
         "near": {
@@ -40,7 +40,7 @@ frisby.create('POST api/person/search')
             "distance" : 40
         }
     }, {json: true})
-  .expectStatus(201)
+  .expectStatus(200)
   .toss();
 
 var moreLikeBody = [`"${testid}"`];
@@ -51,3 +51,4 @@ frisby.create('POST api/person/morelike')
     , {json: true})
   .expectStatus(200)
   .toss();
+

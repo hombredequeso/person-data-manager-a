@@ -9,6 +9,14 @@ using Newtonsoft.Json.Linq;
 
 namespace Hdq.PersonDataManager.Api.Dal
 {
+    public static class StringExtensions
+    {
+        public static string Enclose(this string s, string e = "\"")
+        {
+            return $"{e}{s}{e}";
+        }
+    }
+
     public static class ElasticsearchQueries
     {
         public static readonly string PersonIndex = "person";
@@ -141,52 +149,46 @@ namespace Hdq.PersonDataManager.Api.Dal
 
         public static JProperty GetGeoAggregation(Coord coord)
         {
-            JProperty result = new JProperty(
-                "geoAggregations",
-                new JObject {
-                {
-                    "geo_distance", new JObject
-                    {
-                        {
-                            "field", "geo.coord"
-                        },
-                        {
-                            "origin", $"{coord.Lat}, {coord.Lon}"
-                        },
-                        {
-                            "unit", "km"
-                        },
-                        {
-                            "ranges", new JArray
-                            {
-                                new JObject {{"to", 10}},
-                                new JObject {{"from", 10}, {"to", 20}},
-                                new JObject {{"from", 20}, {"to", 50}},
-                                new JObject {{"from", 50}, {"to", 500}},
-                                new JObject {{"from", 500}},
-                            }
-                        }
+            string s = 
+                @"{
+                    ""geo_distance"" : {
+                        ""field"": ""geo.coord"",
+                        ""origin"": " + $"{coord.Lat}, {coord.Lon}".Enclose() + @",
+                        ""unit"": ""km"",
+                        ""ranges"": [
+                            {""to"": 10},
+                            {""from"": 10, ""to"": 20},
+                            {""from"": 20, ""to"": 50},
+                            {""from"": 50, ""to"": 500},
+                            {""from"": 500}
+                        ]
                     }
-                }
-            });
-            return result;
+                }";
+            return new JProperty("geoAggregations", JObject.Parse(s));
         }
 
         public static JProperty GetTagAggregations()
         {
-            return new JProperty(
-                "tagAggs",
-                new JObject
-                {
-                    {
-                        "terms", new JObject
-                        {
-                            {"field", "tags.keyword"}
+            string obj = 
+                    @"{
+                        ""terms"" : {
+                            ""field"" : ""tags.keyword""
                         }
-                    }
-                });
+                    }";
+
+            return new JProperty("tagAggs", JObject.Parse(obj));
         }
 
+        public static JProperty GetTagAggregationsB()
+        {
+            string value = 
+                @"{
+                    ""terms"" : {
+                        ""field"": ""tags.keyword""
+                    }
+                }";  
+            return new JProperty("tagAggs", JObject.Parse(value));
+        }
         public static JObject AddIf(JObject o, bool conditional, Func<JProperty> p)
         {
             if (conditional)
@@ -206,62 +208,41 @@ namespace Hdq.PersonDataManager.Api.Dal
 
         public static JObject ToMatch(string field, string value)
         {
-            return new JObject
-            {
-                {
-                    "match", new JObject
-                    {
-                        {
-                            field, new JObject
-                            {
-                                {"query", value}
-                            }
+            string obj = 
+                @"{
+                    ""match"" : {
+                        " + field.Enclose() + @": {
+                            ""query"": " + value.Enclose() + @"
                         }
                     }
-                }
-            };
+                }";
+            return JObject.Parse(obj);
         }
 
         public static JObject ToGeoDistance(Coord geoCoord, decimal distKm)
         {
-            return new JObject
-            {
-                {
-                    "geo_distance", new JObject
-                    {
-                        {"distance", $"{distKm}km"},
-                        {
-                            "geo.coord", new JObject
-                            {
-                                {"lat", geoCoord.Lat},
-                                {"lon", geoCoord.Lon}
-                            }
+            string obj = 
+                @"{
+                    ""geo_distance"" : {
+                        ""distance"" : " + $"{distKm}km".Enclose() + @",
+                        ""geo.coord"" : {
+                            ""lat"": " + geoCoord.Lat + @",
+                            ""lon"": " + geoCoord.Lon + @"
                         }
                     }
-                }
-            };
+                }";
+            return JObject.Parse(obj);
         }
 
         public static JObject ToTermTag(string tag)
         {
-            return new JObject
-            {
-                {
-                    "term", new JObject
-                    {
-                        {"tags", tag}
+            return JObject.Parse(
+                @"{
+                    ""term"" : {
+                        ""tags"": " + tag.Enclose() + @"
                     }
-                }
-            };
-        }
-
-        public static JObject GetTag(int tagId, string tagValue)
-        {
-            return new JObject
-            {
-                {"id", tagId},
-                {"value", tagValue}
-            };
+                }"
+            );
         }
 
         public static string GetScript()
