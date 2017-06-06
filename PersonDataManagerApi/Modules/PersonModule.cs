@@ -1,4 +1,7 @@
-﻿using Hdq.PersonDataManager.Api.Dal;
+﻿using System;
+using System.Runtime.Remoting.Messaging;
+using Hdq.PersonDataManager.Api.Dal;
+using Hdq.PersonDataManager.Api.Domain;
 using Nancy;
 using Nancy.ModelBinding;
 
@@ -99,9 +102,22 @@ namespace Hdq.PersonDataManager.Api.Modules
             Post["/api/person/tag/"] = parameters =>
             {
                 var bulkTagAdd = this.Bind<BulkTagAdd>();
-                var success = ElasticsearchQueries.UpdateMatchingPersonTags(bulkTagAdd);
-                return success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
+                var cmd = new Command<BulkTagAdd>(Guid.NewGuid(), bulkTagAdd);
+                ElasticsearchQueries.CommandResponse result = ElasticsearchQueries.UpdateMatchingPersonTags(cmd);
+                return Response
+                    .AsJson(ToResponseBody(result))
+                    .WithStatusCode(result.Success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError);
             };
         }
+
+        public static object ToResponseBody(ElasticsearchQueries.CommandResponse result)
+        {
+            return new
+            {
+                cmdId = result.CommandId,
+                success = result.Success
+            };
+        }
+
     }
 }

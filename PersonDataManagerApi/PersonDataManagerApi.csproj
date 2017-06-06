@@ -80,6 +80,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Domain\Command.cs" />
     <Compile Include="Modules\PersonModule.cs" />
     <Compile Include="Dal\ElasticsearchDb.cs" />
     <Compile Include="Dal\ElasticsearchQueries.cs" />

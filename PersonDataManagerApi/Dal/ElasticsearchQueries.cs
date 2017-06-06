@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Elasticsearch.Net;
+using Hdq.PersonDataManager.Api.Domain;
 using Hdq.PersonDataManager.Api.Modules;
 using Nest;
 using Newtonsoft.Json.Linq;
@@ -46,17 +47,29 @@ namespace Hdq.PersonDataManager.Api.Dal
             return r.Created;
         }
 
-        public static bool UpdateMatchingPersonTags(BulkTagAdd requestBody)
+        public class CommandResponse
+        {
+            public CommandResponse(Guid commandId, bool success)
+            {
+                CommandId = commandId;
+                Success = success;
+            }
+
+            public Guid CommandId { get; }
+            public bool Success { get; }
+        }
+        
+        public static CommandResponse UpdateMatchingPersonTags(Command<BulkTagAdd> cmd)
         {
             PostData<object> bodyx = GetUpdate(
-                requestBody.Match.Tags,
-                requestBody.AddTag,
-                Guid.NewGuid());
-            var response = ElasticsearchDb.Client.LowLevel
+                cmd.Cmd.Match.Tags,
+                cmd.Cmd.AddTag,
+                cmd.Id);
+            ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, bodyx);
-            return response.Success;
+            return new CommandResponse(cmd.Id, response.Success);
         }
-
+        
         public static string SearchPeople(PersonMatch apiSearch)
         {
             var response =
@@ -259,6 +272,7 @@ namespace Hdq.PersonDataManager.Api.Dal
         {
             var query = @"
                 {
+                    ""conflicts"": ""proceed"",
                     ""query"": {
                         ""constant_score"": {
                             ""filter"": {
