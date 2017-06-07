@@ -47,17 +47,35 @@ jasmine-node spec
 
 ## Generating Sample Data
 
-Sample data for this project can be generated in the following way.
-1. Get the [person-random-data-generator](https://github.com/hombredequeso/person-random-data-generator)
+WINDOWS USERS: the following uses linux commands/shell scripts. 
+
+### Prerequisites
+
+1. Get the [person-random-data-generator](https://github.com/hombredequeso/person-random-data-generator). Have it in the same directory as this project.
 2. Install [jq](https://stedolan.github.io/jq/)
 3. Startup Elasticsearch at localhost:9200.
-3. Copy data/person-data-manager-generator-1.js into the person-random-data-generator util directory.
-4. Run the following command from the person-random-data-generator/util directory:
+
+### Data Generation
+
+First, a bash shell script can be used. On Windows your best bet is the Windows Linux Subsystem.
+The person index can be created and populated from within the data directory:
+```
+./resetdb.sh
+```
+
+Second, a more manual approach can be used.
+This will work within a bash shell, or a git bash shell.
+
+1. Copy data/person-data-manager-generator-1.js into the person-random-data-generator util directory.
+2. Run the following commands from the data directory, which will create 10,000 entries in the person index.
 
 ```
-node create-people.js --generator ./person-data-manager-generator-1.js | jq -c '.[] | {"index": {"_index": "person", "_type": "person"}}, .' | curl -XPOST localhost:9200/_bulk --data-bin ary @-
-
+curl -XDELETE localhost:9200/person 
+curl -XPUT --data '@./person-mapping.json' localhost:9200/person 
+node ../../person-random-data-generator/util/create-people.js --generator ./person-data-manager-generator-1.js --count 10000 | jq -c '.[] | {"index": {"_index": "person", "_type": "person"}}, .' | curl -XPOST localhost:9200/_bulk -o /dev/null --data-binary @-
 ```
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
