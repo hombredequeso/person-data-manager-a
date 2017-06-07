@@ -1,0 +1,16 @@
+{
+  "mappings": {
+    "person" : {
+      "properties": {
+        "geo" : {
+            "properties": {
+              "coord": {
+                 "type" : "geo_point"
+              }
+            } 
+        }
+      }
+    }
+  }
+}
+
