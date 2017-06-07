@@ -59,6 +59,8 @@ WINDOWS USERS: the following uses linux commands/shell scripts. It needs to be r
 The data is generated via a git submodule project. To setup:
 ```
 cd person-random-data-generator
+git submodule init
+git submodule update
 npm install
 ```
 
