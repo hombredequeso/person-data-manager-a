@@ -56,18 +56,12 @@ WINDOWS USERS: the following uses linux commands/shell scripts. It needs to be r
 
 ### Data Generation
 
-The data is generated via a git submodule project. To setup:
 ```
-cd person-random-data-generator
-git submodule init
-git submodule update
+cd data-generator
 npm install
-```
-
-The person index is created and populated from within the data directory:
-```
-cd data
-./resetdb.sh
+curl -XDELETE -o /dev/null -s localhost:9200/person
+curl -XPUT --data '@../data/person-mapping.json' -o /dev/null -s localhost:9200/person
+node index.js --count 100 | jq -c '.[] | {"index": {"_index": "person", "_type": "person", "_id": .id|tostring }}, .' | curl -XPOST localhost:9200/_bulk -o /dev/null --data-binary @-
 ```
 
 ## License

@@ -1,16 +1,23 @@
 {
-  "mappings": {
-    "person" : {
-      "properties": {
-        "geo" : {
+    "mappings": {
+        "person" : {
             "properties": {
-              "coord": {
-                 "type" : "geo_point"
-              }
-            } 
+                "address": {
+                    "properties": {
+                        "geo" : {
+                            "properties": {
+                                "coord": {
+                                    "type" : "geo_point"
+                                }
+                            } 
+                        }
+
+                    }
+                }
+
+
+            }
         }
-      }
     }
-  }
 }
 

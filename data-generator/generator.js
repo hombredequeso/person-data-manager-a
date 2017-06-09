@@ -1,7 +1,8 @@
 const faker = require('faker');
 const randomCoord = require('geo-utils/lib/random-geo-coord')
 const weightedRandom = require('geo-utils/lib/weighted-random')
-const randomSubset = require('../lib/random-subset');
+const uuidV4 = require('uuid/v4');
+const randomSubset = require("random-array-subset")
 
 faker.locale = "en_AU";
 
@@ -94,23 +95,37 @@ const tagCount = 10;
 const tagList = Array(tagCount).fill(0).map((x,i) => `item${i}`);
 
 function* personGenerator() {
-    let id = 1;
 
     while (true) {
 
-        let geoCoord = randomCoord.randomizedCoord(Math.random, weightedRandom.get('population', locations).location, 30, 1.5);
+        let randomLocation = weightedRandom.get('population', locations);
+        let geoCoord = randomCoord.randomizedCoord(Math.random, randomLocation.location, 30, 1.5);
+        let firstName = faker.name.firstName();
+        let lastName = faker.name.lastName();
+        let email = faker.internet.email(firstName, lastName);
+        let phoneNumber = faker.phone.phoneNumber();
 
         yield {
-            "id": id++,
-            "name": faker.name.findName(),
-            "email": faker.internet.email(),
-            "tags": randomSubset.getNDistinctFrom(
-                                    faker.random.arrayElement, 
-                                    tagList,
-                                    faker.random.number({min:2, max:5})),
+            "id": uuidV4(),
+            "name": {
+                firstName: firstName,
+                lastName: lastName
+            },
+            "tags": randomSubset(tagList, faker.random.number({min:2, max:5}) ),
             "poolStatuses": [],
-            "geo": {
-                "coord": geoCoord
+            "contact": {
+                "phone": [
+                    {"label": "home", "number": phoneNumber}
+                ],
+                "email": [
+                    {"label": "work", "address": email}
+                ]
+            },
+            "address": {
+                "region": randomLocation.city,
+                "geo": {
+                    "coord": geoCoord
+                }
             }
         };
     }

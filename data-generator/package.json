@@ -1,0 +1,18 @@
+{
+  "name": "data-generator",
+  "version": "0.1.0",
+  "description": "Data Generator for person-data-manager-a project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mark Cheeseman",
+  "license": "MIT",
+  "dependencies": {
+    "command-line-args": "^4.0.6",
+    "faker": "^4.1.0",
+    "geo-utils": "github:hombredequeso/geo-utils",
+    "random-array-subset": "^1.0.2",
+    "uuid": "^3.0.1"
+  }
+}
