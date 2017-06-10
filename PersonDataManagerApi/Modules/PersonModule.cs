@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Remoting.Messaging;
 using Hdq.PersonDataManager.Api.Dal;
 using Hdq.PersonDataManager.Api.Domain;
 using Nancy;
@@ -13,17 +12,49 @@ namespace Hdq.PersonDataManager.Api.Modules
         public decimal Lon { get; set; }
     }
 
+
+    public class Name
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+    }
+
+    public class ContactDetails
+    {
+        public PhoneContact[] Phone { get; set; }
+        public EmailContact[] Email { get; set; }
+        
+    }
+
+    public class PhoneContact
+    {
+        public string Label { get; set; }
+        public string Number { get; set; }
+    }
+
+    public class EmailContact
+    {
+        public string Label { get; set; }
+        public string Address { get; set; }
+    }
+
     public class Person
     {
         public string Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
+        public Name Name { get; set; }
         public string[] Tags { get; set; }
         public PoolStatus[] PoolStatuses { get; set; }
-        public PersonGeoData Geo { get; set; }
+        public ContactDetails Contact { get; set; }
+        public Address Address { get; set; }
     }
 
-    public class PersonGeoData
+    public class Address
+    {
+        public string Region { get; set; }
+        public Geo Geo { get; set; }
+    }
+
+    public class Geo
     {
         public Coord Coord { get; set; }
     }

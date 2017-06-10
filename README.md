@@ -55,14 +55,14 @@ WINDOWS USERS: the following uses linux commands/shell scripts. It needs to be r
 2. Elasticsearch at localhost:9200.
 
 ### Data Generation
+Sample data for the person-data-manager can be generated using the following in bash (Windows users on the linux subsystem).
 
 ```
-cd data-generator
-npm install
-curl -XDELETE -o /dev/null -s localhost:9200/person
-curl -XPUT --data '@../data/person-mapping.json' -o /dev/null -s localhost:9200/person
-node index.js --count 100 | jq -c '.[] | {"index": {"_index": "person", "_type": "person", "_id": .id|tostring }}, .' | curl -XPOST localhost:9200/_bulk -o /dev/null --data-binary @-
+cd data
+./resetdb.sh
 ```
+
+This will create 10,000 random people in the elasticsearch /people index.
 
 ## License
 
