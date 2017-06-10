@@ -7,22 +7,40 @@ function getRandomInt(min, max) {
 }
 
 
-let testid = getRandomInt(100000, 900000);
+let testid = "f0a6261b-6c4a-4af4-b92b-d3c51177f41f";
 
 frisby.create('POST api/person')
     .post('http://localhost:8080/api/person', {
         "id": testid,
-        "name" : "bob mcbob",
-        "email" : "bob@gmail.com",
+        "name" : {
+            "firstName": "bob",
+            "lastName": "mcbob"
+        },
+        "contact": {
+            "phone": [
+              {
+                "label": "home",
+                "number": "07 9876 5432"
+              }
+            ],
+            "email": [
+              {
+                "label": "work",
+                "address": "bob@mcbob.com"
+              }
+            ]
+        },
         "tags" : ["item1", "item2", "item3"],
         "poolStatuses": [],
-        "geo": {
-          "coord": {
-            "lat": -37.80710456081047,
-            "lon": 144.96544319139053
-          }
-        }
-    }, {json: true})
+        "address": {
+            "geo": {
+              "coord": {
+                "lat": -37.80710456081047,
+                "lon": 144.96544319139053
+              }
+            }
+            }
+        }, {json: true})
   .expectStatus(201)
   .toss();
 
@@ -34,7 +52,10 @@ frisby.create(`GET api/person/${testid}`)
 
 frisby.create('POST api/person/search')
     .post('http://localhost:8080/api/person/search', {
-        "name": "bob",
+        "name": {
+            "firstName": "bob",
+            "lastName": ""
+        },
         "tags": ["item3"],
         "near": {
             "coord": {
