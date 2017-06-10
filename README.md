@@ -66,7 +66,9 @@ WINDOWS USERS: the following uses linux commands/shell scripts. It needs to be r
 Sample data for the person-data-manager can be generated using the following in bash (Windows users on the linux subsystem).
 
 ```
-cd data
+cd data-generator
+npm install
+cd ../data
 ./resetdb.sh
 ```
 
