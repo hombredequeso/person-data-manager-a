@@ -75,8 +75,7 @@ namespace Hdq.PersonDataManager.Api.Dal
             var response =
                 ElasticsearchDb.Client.LowLevel.Search<byte[]>("person", "person",
                     new PostData<object>(GetSearchQuery(apiSearch)));
-            var jsonResponse = AsUtf8String(response.Body);
-            return response.Success ? jsonResponse : null;
+            return response.Success ? AsUtf8String(response.Body) : null;
         }
 
         public static string MoreLikePeople(string[] ids)
@@ -125,8 +124,13 @@ namespace Hdq.PersonDataManager.Api.Dal
             var mustClauses = new List<JObject>();
             if (apiSearch.Tags.Any())
                 mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
-            if (!string.IsNullOrWhiteSpace(apiSearch.Name))
-                mustClauses.Add(ToMatch("name", apiSearch.Name));
+            if (apiSearch.Name != null)
+            {
+                if (!string.IsNullOrWhiteSpace(apiSearch.Name.FirstName))
+                    mustClauses.Add(ToMatch("name.firstName", apiSearch.Name.FirstName));
+                if (!string.IsNullOrWhiteSpace(apiSearch.Name.LastName))
+                    mustClauses.Add(ToMatch("name.lastName", apiSearch.Name.LastName));
+            }
 
             var mustArrayClauses = new JArray(mustClauses);
 
@@ -238,7 +242,7 @@ namespace Hdq.PersonDataManager.Api.Dal
                 @"{
                     ""geo_distance"" : {
                         ""distance"" : " + $"{distKm}km".Enclose() + @",
-                        ""geo.coord"" : {
+                        ""address.geo.coord"" : {
                             ""lat"": " + geoCoord.Lat + @",
                             ""lon"": " + geoCoord.Lon + @"
                         }

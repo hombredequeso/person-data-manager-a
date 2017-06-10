@@ -67,7 +67,7 @@ namespace Hdq.PersonDataManager.Api.Modules
 
     public class PersonMatch
     {
-        public string Name { get; set; }
+        public Name Name { get; set; }
         public string[] Tags { get; set; }
         public PoolStatus[] PoolStatuses { get; set; }
         public GeoDistance Near { get; set; }
