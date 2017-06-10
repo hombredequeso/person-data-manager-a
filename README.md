@@ -26,6 +26,14 @@ This means Visual Studio needs to be run as admin, or follow the ["Running witho
 
 The file data/person-data-manager.postman_collection.json contains a sample collection of sample api requests that can be loaded in to [Postman](https://www.getpostman.com/).
 
+A simple test of these queries may go as follows:
+* Populate the database as in *Generating Sample Data*.
+* Execute *POST api/person* to create a new person (Sophia Mclaughlin).
+* Execute *GET /api/person/{id}* to get the Sophia Mclaughlin.
+* Execute *POST api/person/search* to search for people, which should include Sophia Mclaughlin.
+* Execute *POST /api/person/morelike* to find more people like Sophia Mclaughlin
+* Execute *POST api/person/tag* to update all people with the firstname "Sophia" and a tag "item3"
+
 ## Running Tests
 
 Api tests using the [frisbyjs](http://frisbyjs.com/) nodejs framework are available. To run them, ensure Elasticsearch is running at localhost:9200.

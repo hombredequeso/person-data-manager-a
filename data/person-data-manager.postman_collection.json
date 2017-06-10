@@ -21,14 +21,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"addTag\" : \"itemNew\",\n\t\"match\": {\n\t\t\"name\" : \"bob\",\n\t\t\"tags\": [\"item3\"]\n\t}\n}"
+					"raw": "{\n\t\"addTag\" : \"itemNew\",\n\t\"match\": {\n\t\t\"name\" : {\n\t\t\t\"firstName\": \"Sophia\",\n\t\t\t\"lastName\": \"\"\n\t\t},\n\t\t\"tags\": [\"item3\"]\n\t}\n}"
 				},
 				"description": "Bulk update of tags for people matching a query."
 			},
 			"response": []
 		},
 		{
-			"name": "GET api/person/1",
+			"name": "GET api/person/{id}",
 			"request": {
 				"url": "http://localhost:8080/api/person/f0a6261b-6c4a-4af4-b92b-d3c51177f41g",
 				"method": "GET",
@@ -72,7 +72,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"\",\n\t\"tags\": [\"item3\"],\n\t\"near\": {\n\t\t\"coord\": {\n\t\t\t\"lat\": -37.814,\n\t\t\t\"lon\": 144.963\n\t\t},\n\t\t\"distance\" : 40\n\t}\n}"
+					"raw": "{\n\t\"name\": {\n\t\t\"firstName\": \"Sophia\",\n\t\t\"lastName\": \"\"\n\t},\n\t\"tags\": [\"item3\"],\n\t\"near\": {\n\t\t\"coord\": {\n\t\t\t\"lat\": -37.814,\n\t\t\t\"lon\": 144.963\n\t\t},\n\t\t\"distance\" : 40\n\t}\n}"
 				},
 				"description": "Perform a search on people.\n(Is POST to allow for a body)"
 			},
@@ -92,7 +92,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "[ \"AVxiZUFgjzAjYdQ6hWtM\" ]"
+					"raw": "[ \"f0a6261b-6c4a-4af4-b92b-d3c51177f41g\" ]"
 				},
 				"description": ""
 			},
