@@ -30,7 +30,7 @@
 		{
 			"name": "GET api/person/1",
 			"request": {
-				"url": "http://localhost:8080/api/person/3",
+				"url": "http://localhost:8080/api/person/f0a6261b-6c4a-4af4-b92b-d3c51177f41g",
 				"method": "GET",
 				"header": [],
 				"body": {},
@@ -52,7 +52,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"id\": 3,\n\t\"name\" : \"bob mcbob\",\n\t\"email\" : \"bob@gmail.com\",\n\t\"tags\" : [\"item1\", \"item2\", \"item3\"],\n    \"poolStatuses\": [],\n    \"geo\": {\n      \"coord\": {\n        \"lat\": -37.80710456081047,\n        \"lon\": 144.96544319139053\n      }\n    }\n}"
+					"raw": "{\n  \"id\": \"f0a6261b-6c4a-4af4-b92b-d3c51177f41g\",\n  \"name\": {\n    \"firstName\": \"Sophia\",\n    \"lastName\": \"Mclaughlin\"\n  },\n  \"tags\": [\n    \"item3\",\n    \"item5\"\n  ],\n  \"poolStatuses\": [],\n  \"contact\": {\n    \"phone\": [\n      {\n        \"label\": \"home\",\n        \"number\": \"07 0624 8545\"\n      }\n    ],\n    \"email\": [\n      {\n        \"label\": \"work\",\n        \"address\": \"Sophia.Mclaughlin@yahoo.com\"\n      }\n    ]\n  },\n  \"address\": {\n    \"region\": \"Melbourne\",\n    \"geo\": {\n      \"coord\": {\n        \"lat\": -37.80576653851945,\n        \"lon\": 144.94075561102966\n      }\n    }\n  }\n}"
 				},
 				"description": ""
 			},
