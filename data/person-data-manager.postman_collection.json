@@ -21,7 +21,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"addTag\" : \"itemNew\",\n\t\"match\": {\n\t\t\"name\" : {\n\t\t\t\"firstName\": \"Sophia\",\n\t\t\t\"lastName\": \"\"\n\t\t},\n\t\t\"tags\": [\"item3\"]\n\t}\n}"
+					"raw": "{\n\t\"addTag\" : \"itemNew.1\",\n\t\"match\": {\n\t\t\"name\" : {\n\t\t\t\"firstName\": \"\",\n\t\t\t\"lastName\": \"\"\n\t\t},\n\t\t\"tags\": [\"item3\"]\n\t}\n}"
 				},
 				"description": "Bulk update of tags for people matching a query."
 			},
@@ -72,7 +72,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": {\n\t\t\"firstName\": \"Sophia\",\n\t\t\"lastName\": \"\"\n\t},\n\t\"tags\": [\"item3\"],\n\t\"near\": {\n\t\t\"coord\": {\n\t\t\t\"lat\": -37.814,\n\t\t\t\"lon\": 144.963\n\t\t},\n\t\t\"distance\" : 40\n\t}\n}"
+					"raw": "{\n\t\"name\": {\n\t\t\"firstName\": \"\",\n\t\t\"lastName\": \"\"\n\t},\n\t\"tags\": [\"item1\"]\n}"
 				},
 				"description": "Perform a search on people.\n(Is POST to allow for a body)"
 			},

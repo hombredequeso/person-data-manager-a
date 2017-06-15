@@ -43,8 +43,8 @@ namespace Hdq.PersonDataManager.Api.Dal
                     return result;
                 };
 
-            var r = ElasticsearchDb.Client.Index(person, selector);
-            return r.Created;
+            IIndexResponse r = ElasticsearchDb.Client.Index(person, selector);
+            return r.IsValid;
         }
 
         public class CommandResponse
@@ -61,20 +61,26 @@ namespace Hdq.PersonDataManager.Api.Dal
         
         public static CommandResponse UpdateMatchingPersonTags(Command<BulkTagAdd> cmd)
         {
-            PostData<object> bodyx = GetUpdate(
+            PostData<object> body = GetUpdate(
                 cmd.Cmd.Match.Tags,
+                cmd.Cmd.Match.Name.FirstName,
                 cmd.Cmd.AddTag,
                 cmd.Id);
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
-                .UpdateByQuery<byte[]>(PersonIndex, bodyx);
+                .UpdateByQuery<byte[]>(PersonIndex, body);
+            var responseBody = response.Body;
+            var bodyAsStr = AsUtf8String(responseBody);
+            Console.WriteLine(bodyAsStr);
+            
+            // JObject jobj = JObject.Parse(bodyAsStr);
             return new CommandResponse(cmd.Id, response.Success);
         }
         
-        public static string SearchPeople(PersonMatch apiSearch)
+        public static string SearchPeople(PersonMatch apiSearch, int from, int size)
         {
             var response =
                 ElasticsearchDb.Client.LowLevel.Search<byte[]>("person", "person",
-                    new PostData<object>(GetSearchQuery(apiSearch)));
+                    new PostData<object>(GetSearchQuery(apiSearch, from, size)));
             return response.Success ? AsUtf8String(response.Body) : null;
         }
 
@@ -119,7 +125,7 @@ namespace Hdq.PersonDataManager.Api.Dal
             return Encoding.UTF8.GetString(b);
         }
 
-        private static string GetSearchQuery(PersonMatch apiSearch)
+        private static string GetSearchQuery(PersonMatch apiSearch, int from, int size)
         {
             var mustClauses = new List<JObject>();
             if (apiSearch.Tags.Any())
@@ -145,6 +151,8 @@ namespace Hdq.PersonDataManager.Api.Dal
 
             var query = @"
                 {
+                  ""from"": " + from + @",
+                  ""size"": " + size + @",
                   ""query"": {
                     ""bool"": {
                       ""must"" : " +
@@ -255,8 +263,19 @@ namespace Hdq.PersonDataManager.Api.Dal
         {
             return JObject.Parse(
                 @"{
-                    ""term"" : {
+                    ""match"" : {
                         ""tags"": " + tag.Enclose() + @"
+                    }
+                }"
+            );
+        }
+        
+        public static JObject ToTerm(string field, string value)
+        {
+            return JObject.Parse(
+                @"{
+                    ""match"" : {
+                        """ + field + @""": " + value.Enclose() + @"
                     }
                 }"
             );
@@ -272,8 +291,18 @@ namespace Hdq.PersonDataManager.Api.Dal
             return newScript.Replace(Environment.NewLine, "");
         }
 
-        public static string GetUpdate(string[] tags, string tagValue, Guid operationId)
+        public static string GetUpdate(
+            string[] tags, 
+            string firstName,
+            string tagValue, Guid operationId)
         {
+            var filterTerms = tags.Select(ToTermTag).ToList();
+            if (!string.IsNullOrWhiteSpace(firstName))
+            {
+                var nameTerm = ToTerm("name.firstName", firstName);
+                filterTerms.Add(nameTerm);
+            }
+             
             var query = @"
                 {
                     ""conflicts"": ""proceed"",
@@ -283,7 +312,7 @@ namespace Hdq.PersonDataManager.Api.Dal
                               ""bool"": {
                                 ""must"":"
                         +
-                        new JArray(tags.Select(ToTermTag))
+                        new JArray(filterTerms)
                         +
                         @"}
                             }

@@ -34,7 +34,13 @@ A simple test of these queries may go as follows:
 * Execute *POST /api/person/morelike* to find more people like Sophia Mclaughlin
 * Execute *POST api/person/tag* to update all people with the firstname "Sophia" and a tag "item3"
 
-## Running Tests
+## API Tests
+
+### Prerequisites
+
+* Node 6+
+
+### Running API Tests
 
 Api tests using the [frisbyjs](http://frisbyjs.com/) nodejs framework are available. To run them, ensure Elasticsearch is running at localhost:9200.
 To run the tests the first time:

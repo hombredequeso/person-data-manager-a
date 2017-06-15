@@ -1,4 +1,5 @@
-var frisby = require('frisby');
+const frisby = require('frisby');
+const uuidV4 = require('uuid/v4');
 
 function getRandomInt(min, max) {
   min = Math.ceil(min);
@@ -6,8 +7,8 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
+let testid = uuidV4();
 
-let testid = "f0a6261b-6c4a-4af4-b92b-d3c51177f41f";
 
 frisby.create('POST api/person')
     .post('http://localhost:8080/api/person', {
@@ -50,10 +51,10 @@ frisby.create(`GET api/person/${testid}`)
   .expectHeaderContains('content-type', 'application/json')
   .toss();
 
-frisby.create('POST api/person/search')
-    .post('http://localhost:8080/api/person/search', {
+const basicSearchBody = 
+    {
         "name": {
-            "firstName": "bob",
+            "firstName": "",
             "lastName": ""
         },
         "tags": ["item3"],
@@ -64,10 +65,56 @@ frisby.create('POST api/person/search')
             },
             "distance" : 40
         }
-    }, {json: true})
-  .expectStatus(200)
-  .toss();
+    };
 
+const queryStringTestData = [
+    {description: 'search with no query parameters', url: 'http://localhost:8080/api/person/search', responseCode: 200},
+    {description: 'search with all valid query parameters',url: 'http://localhost:8080/api/person/search?from=100&size=5', responseCode: 200},
+    {description: 'search with invalid "from" query parameter',url: 'http://localhost:8080/api/person/search?from=abc', responseCode: 400},
+    {description: 'search with invalid "to" query parameter',url: 'http://localhost:8080/api/person/search?size=abc', responseCode: 400},
+];
+
+queryStringTestData.forEach(d => {
+    frisby.create(d.description)
+        .post(d.url, basicSearchBody, {json: true})
+      .expectStatus(d.responseCode)
+      .toss();
+});
+
+
+// Paging tests. Each page should return different people.
+//
+// page 1
+var page1Ids = [];
+frisby.create('Search page 1')
+    .post('http://localhost:8080/api/person/search', basicSearchBody, {json: true})
+    .expectStatus(200)
+    .afterJSON(function(p1json){
+        var page1Ids = p1json.hits.hits.map(x => x._id);
+
+        frisby.create('Search page 2')
+            .post('http://localhost:8080/api/person/search?from=10&size=10', basicSearchBody, {json: true})
+            .expectStatus(200)
+            .expectJSON('hits', 
+            {
+                'hits': function(a)
+                {
+                    var p2Ids = a.map(x => x._id); 
+                    var allIds = [page1Ids, p2Ids];
+                    let intersection = allIds.shift().filter(function(v) {
+                        return allIds.every(function(a) {
+                            return a.indexOf(v) !== -1;
+                        });
+                    });
+                    expect(intersection.length).toBe(0);
+                    // console.log(intersection);
+                }
+            })
+            .toss();
+    })
+    .toss();
+
+ 
 var moreLikeBody = [`"${testid}"`];
 
 frisby.create('POST api/person/morelike')

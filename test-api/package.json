@@ -10,6 +10,7 @@
   "author": "Mark Cheeseman",
   "license": "MIT",
   "dependencies": {
-    "frisby": "^0.8.5"
+    "frisby": "^0.8.5",
+    "uuid": "^3.0.1"
   }
 }
