@@ -1,11 +1,11 @@
-﻿
-using System;
-using System.Runtime.Remoting.Messaging;
+﻿using System;
 using Hdq.PersonDataManager.Api.Dal;
 using Hdq.PersonDataManager.Api.Domain;
 using Hdq.PersonDataManager.Api.Lib;
 using Nancy;
+using Nancy.Extensions;
 using Nancy.ModelBinding;
+using Newtonsoft.Json;
 
 namespace Hdq.PersonDataManager.Api.Modules
 {
@@ -14,7 +14,6 @@ namespace Hdq.PersonDataManager.Api.Modules
         public decimal Lat { get; set; }
         public decimal Lon { get; set; }
     }
-
 
     public class Name
     {
@@ -96,7 +95,7 @@ namespace Hdq.PersonDataManager.Api.Modules
 
     public static class DynamicParser
     {
-        public static Either<int, HttpError> GetQueryParameter(dynamic x, int defaultValue)
+        public static Either<HttpError, int> GetQueryParameter(dynamic x, int defaultValue)
         {
             if (!x.HasValue)
             {
@@ -109,19 +108,39 @@ namespace Hdq.PersonDataManager.Api.Modules
         }
     }
     
+    
     public static class RequestProcessor
     {
-        public static Either<Pager, HttpError> GetPager(Request r)
+        public enum ErrorCode
         {
-            Either<int, HttpError> @from = DynamicParser.GetQueryParameter(r.Query["from"], 0);
-            return @from.Match(f =>
+           DeserializationError = 1 
+        };
+        
+        public static Either<HttpError, Pager> GetPager(Request r)
+        {
+            Either<HttpError, int> @from = DynamicParser.GetQueryParameter(r.Query["from"], 0);
+            return @from.Match(
+                e => new Either<HttpError, Pager>(new HttpError(HttpStatusCode.BadRequest, "")),
+                f =>
                 {
-                    Either<int, HttpError> size1 = DynamicParser.GetQueryParameter(r.Query["size"], 10);
+                    Either<HttpError, int> size1 = DynamicParser.GetQueryParameter(r.Query["size"], 10);
                     return size1.Match(
-                        s => new Either<Pager, HttpError>(new Pager(f, s)),
-                        e => new Either<Pager, HttpError>(new HttpError(HttpStatusCode.BadRequest, "")) );
-                },
-                e => new Either<Pager, HttpError>(new HttpError(HttpStatusCode.BadRequest, "")));
+                        e => new Either<HttpError, Pager>(new HttpError(HttpStatusCode.BadRequest, "")),
+                        s => new Either<HttpError, Pager>(new Pager(f, s)));
+                });
+        }
+        
+        public static Either<ErrorCode, T> Deserialize<T>(string s)
+        {
+            try
+            {
+                T result = JsonConvert.DeserializeObject<T>(s);
+                return new Either<ErrorCode, T>(result);
+            }
+            catch (JsonException)
+            {
+                return new Either<ErrorCode, T>(ErrorCode.DeserializationError);
+            }
         }
     }
 
@@ -153,6 +172,7 @@ namespace Hdq.PersonDataManager.Api.Modules
         public string ErrorMessage { get; }
     }
     
+    
     public class PersonModule : NancyModule
     {
         public PersonModule()
@@ -175,19 +195,26 @@ namespace Hdq.PersonDataManager.Api.Modules
 
             Post["/api/person/search"] = parameters =>
             {
-                return RequestProcessor.GetPager(Request).Match(
+                var eitherPager = RequestProcessor.GetPager(Request);
+                return eitherPager.Match(
+                    e => HttpStatusCode.BadRequest,
                     pager =>
                     {
-                        var apiSearch = this.Bind<PersonMatch>();
-                        var searchResult = ElasticsearchQueries.SearchPeople(
-                            apiSearch,
-                            pager.From,
-                            pager.Size);
-                        return !string.IsNullOrWhiteSpace(searchResult)
-                            ? Response.AsText(searchResult, "application/json")
-                            : HttpStatusCode.InternalServerError;
-                    },
-                    e => HttpStatusCode.BadRequest
+                        var apiSearch2 = RequestProcessor.Deserialize<PersonMatch>(Request.Body.AsString());
+                        return apiSearch2.Match(
+                            e => HttpStatusCode.BadRequest,
+                            apiSearch =>
+                            {
+                                var searchResult = ElasticsearchQueries.SearchPeople(
+                                    apiSearch,
+                                    pager.From,
+                                    pager.Size);
+                                return !string.IsNullOrWhiteSpace(searchResult)
+                                    ? Response.AsText(searchResult, "application/json")
+                                    : HttpStatusCode.InternalServerError;
+                            } 
+                        );
+                    }
                 );
             };
 
@@ -219,6 +246,5 @@ namespace Hdq.PersonDataManager.Api.Modules
                 success = result.Success
             };
         }
-
     }
 }
