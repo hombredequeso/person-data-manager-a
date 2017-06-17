@@ -1,0 +1,22 @@
+{"index":{"_index":"person","_type":"person","_id":"e7147eb5-ea9e-411f-af93-b34e7895fa7e"}}
+{"id":"e7147eb5-ea9e-411f-af93-b34e7895fa7e","name":{"firstName":"John","lastName":"Bartoletti"},"tags":["tag1"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"04 0909 5287"}],"email":[{"label":"work","address":"Mikayla40@yahoo.com"}]},"address":{"region":"Sydney","geo":{"coord":{"lat":-33.830696765351654,"lon":151.21074584297412}}}}
+
+{"index":{"_index":"person","_type":"person","_id":"20a56fee-3df4-46a9-b439-5f8a2423b3b5"}}
+{"id":"20a56fee-3df4-46a9-b439-5f8a2423b3b5","name":{"firstName":"Susan","lastName":"Mason"},"tags":["tag2"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"+61 0 6071 4960"}],"email":[{"label":"work","address":"Paige66@gmail.com"}]},"address":{"region":"Melbourne","geo":{"coord":{"lat":-37.693079503094,"lon":144.83023819985033}}}}
+{"index":{"_index":"person","_type":"person","_id":"30a56fee-3df4-46a9-b439-5f8a2423b3b5"}}
+{"id":"30a56fee-3df4-46a9-b439-5f8a2423b3b5","name":{"firstName":"Susan","lastName":"Mason"},"tags":["tag2"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"+61 0 6071 4960"}],"email":[{"label":"work","address":"Paige66@gmail.com"}]},"address":{"region":" Adelaide","geo":{"coord":{"lat":-34.790876606024845,"lon":138.55065877644446}}}}
+
+{"index":{"_index":"person","_type":"person","_id":"7cbe4827-1b2c-468a-960b-cd38557373c1"}}
+{"id":"7cbe4827-1b2c-468a-960b-cd38557373c1","name":{"firstName":"NameA","lastName":"Hill"},"tags":["tag5"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"03 3775 2084"}],"email":[{"label":"work","address":"Hayley.Hill@gmail.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1 ,"lon":0.1}}}}
+{"index":{"_index":"person","_type":"person","_id":"853afb14-056d-4989-97c4-9f449c09b8a5"}}
+{"id":"853afb14-056d-4989-97c4-9f449c09b8a5","name":{"firstName":"NameB","lastName":"Douglas"},"tags":["tag5"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"0498 590 411"}],"email":[{"label":"work","address":"Ella.Douglas82@gmail.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1, "lon":0.1}}}}
+
+{"index":{"_index":"person","_type":"person","_id":"d7cca43b-3a17-42f3-a34d-7b19b2686a3a"}}
+{"id":"d7cca43b-3a17-42f3-a34d-7b19b2686a3a","name":{"firstName":"bob","lastName":"Moore"},"tags":["tagtest1"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"0419 798 347"}],"email":[{"label":"work","address":"Christopher3@gmail.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
+{"index":{"_index":"person","_type":"person","_id":"1f0abb57-e8fb-405e-943e-91625d3f8842"}}
+{"id":"1f0abb57-e8fb-405e-943e-91625d3f8842","name":{"firstName":"bob","lastName":"Mann"},"tags":["tagtest2"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"0418 701 604"}],"email":[{"label":"work","address":"Lucas_Mann@hotmail.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
+{"index":{"_index":"person","_type":"person","_id":"08076ae2-84dc-444f-875d-0c66bbdcb5ea"}}
+{"id":"08076ae2-84dc-444f-875d-0c66bbdcb5ea","name":{"firstName":"bob","lastName":"Morrison"},"tags":["tagtest3", "tagtest4"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"02 8304 7192"}],"email":[{"label":"work","address":"Ivy.Morrison@yahoo.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
+{"index":{"_index":"person","_type":"person","_id":"d5ee1c1f-8bbf-44e5-b08b-aca985e3657d"}}
+{"id":"d5ee1c1f-8bbf-44e5-b08b-aca985e3657d","name":{"firstName":"bob","lastName":"Abbott"},"tags":["tagtest3", "tagtest5"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"+61 492 584 144"}],"email":[{"label":"work","address":"Paige.Abbott@yahoo.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
+

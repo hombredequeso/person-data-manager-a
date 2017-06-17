@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Elasticsearch.Net;
@@ -148,6 +149,12 @@ namespace Hdq.PersonDataManager.Api.Dal
             }
             var filterClauses = new JArray(filters);
             var aggregations = GetAggregations(apiSearch);
+            
+            
+            var postFilterClauses = new List<JObject>();
+            if (apiSearch.PostFilter != null && apiSearch.PostFilter.Tags.Any())
+                postFilterClauses.AddRange(apiSearch.PostFilter.Tags.Select(ToTermTag));
+            var postFilterArrayClauses = new JArray(postFilterClauses);
 
             var query = @"
                 {
@@ -162,7 +169,14 @@ namespace Hdq.PersonDataManager.Api.Dal
                     }
                   }, 
                   ""aggs"":  "
-                    + aggregations + @"
+                    + aggregations + @",
+                  ""post_filter"": {
+                        ""bool"": {
+                          ""must"" : " +
+                        postFilterArrayClauses
+                        + @"
+                    }
+                  }
                 }";
             return query;
         }

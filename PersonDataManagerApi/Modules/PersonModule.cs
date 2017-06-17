@@ -67,12 +67,18 @@ namespace Hdq.PersonDataManager.Api.Modules
         public decimal Distance { get; set; }
     }
 
+    public class PostFilter
+    {
+        public string[] Tags { get; set; }
+    }
+
     public class PersonMatch
     {
         public Name Name { get; set; }
         public string[] Tags { get; set; }
         public PoolStatus[] PoolStatuses { get; set; }
         public GeoDistance Near { get; set; }
+        public PostFilter PostFilter { get; set; }
     }
 
     public class PoolStatusMatch
