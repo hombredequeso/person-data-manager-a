@@ -43,19 +43,23 @@ A simple test of these queries may go as follows:
 ### Running API Tests
 
 Api tests using the [frisbyjs](http://frisbyjs.com/) nodejs framework are available. To run them, ensure Elasticsearch is running at localhost:9200.
-To run the tests the first time:
+The tests themselves use bash shell scripts to populate the data. These can be run in 'git bash' or the Windows Linux Subsystem.
+Before running the tests for the first time:
 
 ```
 npm install -g jasmine-node
-cd api-test
+cd test-api
 npm install
-jasmine-node spec
 ```
 
-There-after:
+Within the /test-api directory are a number of spec directories for different types of api tests.
+* spec-bulk does very basic sanity tests on very large amounts of data
+* spec-search does very targeted search tests on small amounts of data
+
+To run any of the tests, change directory into the relevant spec directory and run as follows:
 ```
-cd api-test
-jasmine-node spec
+./resetdb.sh
+jasmine-node .
 
 ```
 
