@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Elasticsearch.Net;
@@ -19,8 +18,54 @@ namespace Hdq.PersonDataManager.Api.Dal
         }
     }
 
+    public static class QueryAggregations
+    {
+        public static JProperty GetGeoAggregation(Coord coord)
+        {
+            string s = 
+                @"{
+                    ""geo_distance"" : {
+                        ""field"": ""geo.coord"",
+                        ""origin"": " + $"{coord.Lat}, {coord.Lon}".Enclose() + @",
+                        ""unit"": ""km"",
+                        ""ranges"": [
+                            {""to"": 10},
+                            {""from"": 10, ""to"": 20},
+                            {""from"": 20, ""to"": 50},
+                            {""from"": 50, ""to"": 500},
+                            {""from"": 500}
+                        ]
+                    }
+                }";
+            return new JProperty("geoAggregations", JObject.Parse(s));
+        }
+
+        public static JProperty GetTagAggregations()
+        {
+            string obj = 
+                    @"{
+                        ""terms"" : {
+                            ""field"" : ""tags.keyword""
+                        }
+                    }";
+
+            return new JProperty("tagAggs", JObject.Parse(obj));
+        }
+
+        public static void AddIf(this JObject o, bool conditional, Func<JProperty> p)
+        {
+            if (conditional)
+                o.Add(p());
+        }
+    }
+
     public static class ElasticsearchQueries
     {
+        public static bool SearchOnGeoCoord(PersonMatch apiSearch)
+        {
+            return (apiSearch?.Near?.Coord != null);
+        }
+
         public static readonly string PersonIndex = "person";
         public static readonly string PersonType = "person";
 
@@ -97,7 +142,7 @@ namespace Hdq.PersonDataManager.Api.Dal
         private static string GetMoreLikeQuery(string[] ids)
         {
             var aggs = new JObject();
-            aggs.Add(GetTagAggregations());
+            aggs.Add(QueryAggregations.GetTagAggregations());
             var query = @"
                 {
                   ""query"": {
@@ -152,13 +197,9 @@ namespace Hdq.PersonDataManager.Api.Dal
                 filters.Add(geoFilter);
             }
             var filterClauses = new JArray(filters);
+            
             var aggregations = GetAggregations(apiSearch);
-            
-            
-            var postFilterClauses = new List<JObject>();
-            if (apiSearch.PostFilter != null && apiSearch.PostFilter.Tags.Any())
-                postFilterClauses.AddRange(apiSearch.PostFilter.Tags.Select(ToTermTag));
-            var postFilterArrayClauses = new JArray(postFilterClauses);
+            var postFilterArrayClauses = GetPostFilterArrayClauses(apiSearch);
 
             var query = @"
                 {
@@ -185,68 +226,22 @@ namespace Hdq.PersonDataManager.Api.Dal
             return query;
         }
 
-        public static bool SearchOnGeoCoord(PersonMatch apiSearch)
+        private static JArray GetPostFilterArrayClauses(PersonMatch apiSearch)
         {
-            return (apiSearch?.Near?.Coord != null);
+            var postFilterClauses = new List<JObject>();
+            if (apiSearch.PostFilter != null && apiSearch.PostFilter.Tags.Any())
+                postFilterClauses.AddRange(apiSearch.PostFilter.Tags.Select(ToTermTag));
+            var postFilterArrayClauses = new JArray(postFilterClauses);
+            return postFilterArrayClauses;
         }
 
-        public static JProperty GetGeoAggregation(Coord coord)
+        private static JObject GetAggregations(PersonMatch apiSearch)
         {
-            string s = 
-                @"{
-                    ""geo_distance"" : {
-                        ""field"": ""geo.coord"",
-                        ""origin"": " + $"{coord.Lat}, {coord.Lon}".Enclose() + @",
-                        ""unit"": ""km"",
-                        ""ranges"": [
-                            {""to"": 10},
-                            {""from"": 10, ""to"": 20},
-                            {""from"": 20, ""to"": 50},
-                            {""from"": 50, ""to"": 500},
-                            {""from"": 500}
-                        ]
-                    }
-                }";
-            return new JProperty("geoAggregations", JObject.Parse(s));
-        }
-
-        public static JProperty GetTagAggregations()
-        {
-            string obj = 
-                    @"{
-                        ""terms"" : {
-                            ""field"" : ""tags.keyword""
-                        }
-                    }";
-
-            return new JProperty("tagAggs", JObject.Parse(obj));
-        }
-
-        public static JProperty GetTagAggregationsB()
-        {
-            string value = 
-                @"{
-                    ""terms"" : {
-                        ""field"": ""tags.keyword""
-                    }
-                }";  
-            return new JProperty("tagAggs", JObject.Parse(value));
-        }
-        public static JObject AddIf(JObject o, bool conditional, Func<JProperty> p)
-        {
-            if (conditional)
-                o.Add(p());
-            return o;
-        }
-
-        public static JObject GetAggregations(PersonMatch apiSearch)
-        {
-            var aggs = new JObject();
-            aggs.Add(GetTagAggregations());
-            return AddIf(
-                aggs, 
-                SearchOnGeoCoord(apiSearch), 
-                () => GetGeoAggregation(apiSearch.Near.Coord));
+            var aggregations = new JObject();
+            aggregations.Add(QueryAggregations.GetTagAggregations());
+            aggregations.AddIf(SearchOnGeoCoord(apiSearch),
+                () => QueryAggregations.GetGeoAggregation(apiSearch.Near.Coord));
+            return aggregations;
         }
 
         public static JObject ToMatch(string field, string value)
