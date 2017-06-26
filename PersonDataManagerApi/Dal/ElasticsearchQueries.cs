@@ -96,6 +96,8 @@ namespace Hdq.PersonDataManager.Api.Dal
 
         private static string GetMoreLikeQuery(string[] ids)
         {
+            var aggs = new JObject();
+            aggs.Add(GetTagAggregations());
             var query = @"
                 {
                   ""query"": {
@@ -105,7 +107,9 @@ namespace Hdq.PersonDataManager.Api.Dal
                         ""min_term_freq"":  1,
                         ""max_query_terms"": 12
                     }
-                  }
+                  },
+                  ""aggs"":  "
+                    + aggs + @"
                 }";
             return query;
         }

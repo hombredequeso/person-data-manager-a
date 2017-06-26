@@ -114,6 +114,14 @@ frisby.create('Search page 1')
     })
     .toss();
 
+
+frisby.create('search contains aggregations')
+    .post('http://localhost:8080/api/person/search', 
+        basicSearchBody
+    , {json: true})
+    .expectJSON({aggregations: {}})
+    .toss();
+
  
 var moreLikeBody = [`"${testid}"`];
 
@@ -124,3 +132,10 @@ frisby.create('POST api/person/morelike')
   .expectStatus(200)
   .toss();
 
+frisby.create('morelike returns aggregations')
+    .post('http://localhost:8080/api/person/morelike', 
+        moreLikeBody
+    , {json: true})
+  .expectStatus(200)
+  .expectJSON({aggregations: {}})
+  .toss();
