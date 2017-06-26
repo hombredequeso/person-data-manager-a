@@ -132,10 +132,10 @@ frisby.create('POST api/person/morelike')
   .expectStatus(200)
   .toss();
 
-frisby.create('morelike returns aggregations')
+frisby.create('morelike includes tag aggregation')
     .post('http://localhost:8080/api/person/morelike', 
         moreLikeBody
     , {json: true})
   .expectStatus(200)
-  .expectJSON({aggregations: {}})
+  .expectJSON('aggregations', {tagAggs: {}})
   .toss();
