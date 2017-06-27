@@ -115,13 +115,32 @@ frisby.create('Search page 1')
     .toss();
 
 
-frisby.create('search contains aggregations')
+frisby.create('search specifying location contains aggregations including geoDistance')
     .post('http://localhost:8080/api/person/search', 
         basicSearchBody
     , {json: true})
-    .expectJSON({aggregations: {}})
+    .expectJSON({aggregations: {
+        geoDistance: {},
+        tagAggs: {}
+    }})
     .toss();
 
+
+
+const tagOnlySearch = 
+    {
+        "tags": ["item3"]
+    };
+
+frisby.create('search without location contains aggregations including geoGrid')
+    .post('http://localhost:8080/api/person/search', 
+        tagOnlySearch
+    , {json: true})
+    .expectJSON({aggregations: {
+        geoGrid: {},
+        tagAggs: {}
+    }})
+    .toss();
  
 var moreLikeBody = [`"${testid}"`];
 

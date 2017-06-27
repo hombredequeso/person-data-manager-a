@@ -20,7 +20,7 @@ namespace Hdq.PersonDataManager.Api.Dal
 
     public static class QueryAggregations
     {
-        public static JProperty GetGeoAggregation(Coord coord)
+        public static JProperty GetGeoDistanceAggregation(Coord coord)
         {
             string s = 
                 @"{
@@ -37,7 +37,19 @@ namespace Hdq.PersonDataManager.Api.Dal
                         ]
                     }
                 }";
-            return new JProperty("geoAggregations", JObject.Parse(s));
+            return new JProperty("geoDistance", JObject.Parse(s));
+        }
+
+        public static JProperty GetGeoGridAggregation()
+        {
+            string s =
+                @"{
+                    ""geohash_grid"" : {
+                        ""field"" : ""address.geo.coord"",
+                        ""precision"" : 3
+                    }
+                }";
+            return new JProperty("geoGrid", JObject.Parse(s));
         }
 
         public static JProperty GetTagAggregations()
@@ -237,11 +249,13 @@ namespace Hdq.PersonDataManager.Api.Dal
 
         private static JObject GetAggregations(PersonMatch apiSearch)
         {
-            var aggregations = new JObject();
-            aggregations.Add(QueryAggregations.GetTagAggregations());
-            aggregations.AddIf(SearchOnGeoCoord(apiSearch),
-                () => QueryAggregations.GetGeoAggregation(apiSearch.Near.Coord));
-            return aggregations;
+            return new JObject
+            {
+                QueryAggregations.GetTagAggregations(),
+                SearchOnGeoCoord(apiSearch)
+                    ? QueryAggregations.GetGeoDistanceAggregation(apiSearch.Near.Coord)
+                    : QueryAggregations.GetGeoGridAggregation()
+            };
         }
 
         public static JObject ToMatch(string field, string value)
