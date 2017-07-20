@@ -7,6 +7,7 @@ using Hdq.PersonDataManager.Api.Domain;
 using Hdq.PersonDataManager.Api.Modules;
 using Nest;
 using Newtonsoft.Json.Linq;
+using NGeoHash;
 
 namespace Hdq.PersonDataManager.Api.Dal
 {
@@ -133,13 +134,55 @@ namespace Hdq.PersonDataManager.Api.Dal
             // JObject jobj = JObject.Parse(bodyAsStr);
             return new CommandResponse(cmd.Id, response.Success);
         }
-        
+
+        public static JObject ToJObject(GeohashDecodeResult geoHashResult)
+        {
+            JObject result = new JObject(
+                new JProperty("lat", geoHashResult.Coordinates.Lat),
+                new JProperty("lon", geoHashResult.Coordinates.Lon)
+                );
+            return result;
+        }
+
+        public static JToken GetToken(JToken start, string[] elements)
+        {
+            if (elements.Length == 0)
+                return start;
+            JToken nextToken = start[elements[0]];
+            if (nextToken == null)
+                return null;
+            return GetToken(nextToken, elements.Skip(1).ToArray());
+        }
+
+        public static string EnrichEsSearchResult(byte[] searchResult)
+        {
+            string result =  AsUtf8String(searchResult);
+            JObject resultAsJObject = JObject.Parse(result);
+            JToken geoBuckets =  GetToken(
+                resultAsJObject, 
+                new []{"aggregations", "geoGrid", "buckets"});
+            if (geoBuckets == null)
+                return result;
+
+            foreach (JToken bucket in geoBuckets)
+            {
+                var geoHash = (string)bucket["key"];
+                GeohashDecodeResult coords = GeoHash.Decode(geoHash);
+                ((JObject)bucket).Add("coord", ToJObject(coords));
+            }
+            var serializedResult = resultAsJObject.ToString();
+            return serializedResult;
+        }
+
         public static string SearchPeople(PersonMatch apiSearch, int from, int size)
         {
             var response =
                 ElasticsearchDb.Client.LowLevel.Search<byte[]>("person", "person",
                     new PostData<object>(GetSearchQuery(apiSearch, from, size)));
-            return response.Success ? AsUtf8String(response.Body) : null;
+
+            return response.Success 
+                ? EnrichEsSearchResult(response.Body) 
+                : null;
         }
 
         public static string MoreLikePeople(string[] ids)
