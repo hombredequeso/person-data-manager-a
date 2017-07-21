@@ -92,7 +92,12 @@ let locations =
 
 
 const tagCount = 10;
-const tagList = Array(tagCount).fill(0).map((x,i) => `item${i}`);
+// const tagList = Array(tagCount).fill(0).map((x,i) => `item${i}`);
+const tagList = ['javascript', 'c#', 'haskell', 'sql', 'elasticsearch', 'neo4j', 'agile', 'discovery', 'distributed systems', 'monolith messes'];
+
+const poolDescriptions = [null, 'Junior Developer', 'Senior Developer', 'Architect'];
+let pools = poolDescriptions.map((x) => {return {id: uuidV4(), description: x};});
+const statuses = ['Stage1', 'Stage2', 'Stage3'];
 
 function* personGenerator() {
 
@@ -105,6 +110,13 @@ function* personGenerator() {
         let email = faker.internet.email(firstName, lastName);
         let phoneNumber = faker.phone.phoneNumber();
 
+        let poolStatuses = [];
+        let pool = faker.random.arrayElement(pools);
+        if (pool.description !== null) {
+            let status = faker.random.arrayElement(statuses);
+            poolStatuses.push({pool: pool, status: status});
+        }
+
         yield {
             "id": uuidV4(),
             "name": {
@@ -112,7 +124,7 @@ function* personGenerator() {
                 lastName: lastName
             },
             "tags": randomSubset(tagList, faker.random.number({min:2, max:5}) ),
-            "poolStatuses": [],
+            "poolStatuses": poolStatuses,
             "contact": {
                 "phone": [
                     {"label": "home", "number": phoneNumber}
