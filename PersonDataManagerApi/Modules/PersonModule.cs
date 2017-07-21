@@ -211,6 +211,10 @@ namespace Hdq.PersonDataManager.Api.Modules
                             e => HttpStatusCode.BadRequest,
                             apiSearch =>
                             {
+                                if (apiSearch.PoolStatuses == null)
+                                {
+                                    apiSearch.PoolStatuses = new PoolStatus[0];
+                                }
                                 var searchResult = ElasticsearchQueries.SearchPeople(
                                     apiSearch,
                                     pager.From,

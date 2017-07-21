@@ -138,7 +138,12 @@ frisby.create('search without location contains aggregations including geoGrid')
     , {json: true})
     .expectJSON({aggregations: {
         geoGrid: {},
-        tagAggs: {}
+        tagAggs: {},
+        poolStatusAggs: {
+            poolStatusAggs: {
+                buckets: []
+            }
+        }
     }})
     .toss();
  

@@ -13,6 +13,9 @@
                             "properties": {
                                 "id": {
                                     "type": "keyword"
+                                },
+                                "description": {
+                                    "type": "keyword"
                                 }
                             }
                         },

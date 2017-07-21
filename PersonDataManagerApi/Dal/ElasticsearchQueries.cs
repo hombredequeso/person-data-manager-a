@@ -64,12 +64,48 @@ namespace Hdq.PersonDataManager.Api.Dal
 
             return new JProperty("tagAggs", JObject.Parse(obj));
         }
-
+        
+        
         public static void AddIf(this JObject o, bool conditional, Func<JProperty> p)
         {
             if (conditional)
                 o.Add(p());
         }
+        
+        
+        public static JProperty GetPoolStatusAggregations()
+        {
+            string obj =
+                @"{
+                    ""nested"": {
+                        ""path"": ""poolStatuses""
+                    },
+                    ""aggs"": {
+                        ""poolStatusAggs"": {
+                            ""terms"": {
+                                ""field"": ""poolStatuses.pool.id""
+                            },
+                            ""aggs"": {
+                                ""pool.description"": {
+                                    ""terms"": {
+                                        ""field"": ""poolStatuses.pool.description"",
+                                        ""size"": 1
+                                    }
+                                },
+                                ""statusAgg"": {
+                                    ""terms"": {
+                                        ""field"": ""poolStatuses.status""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                  }";
+            
+            return new JProperty("poolStatusAggs", JObject.Parse(obj));
+
+        }
+
     }
 
     public static class ElasticsearchQueries
@@ -292,10 +328,12 @@ namespace Hdq.PersonDataManager.Api.Dal
             return postFilterArrayClauses;
         }
 
+
         private static JObject GetAggregations(PersonMatch apiSearch)
         {
             return new JObject
             {
+                QueryAggregations.GetPoolStatusAggregations(),
                 QueryAggregations.GetTagAggregations(),
                 SearchOnGeoCoord(apiSearch)
                     ? QueryAggregations.GetGeoDistanceAggregation(apiSearch.Near.Coord)
@@ -373,10 +411,10 @@ namespace Hdq.PersonDataManager.Api.Dal
             return new JObject(
                 new JProperty("nested", new JObject
                 {
-                   new JProperty("path", poolstatuses) ,
-                    new JProperty("query", new JObject()
+                    new JProperty("path", poolstatuses),
+                    new JProperty("query", new JObject
                     {
-                        new JProperty("bool", new JObject()
+                        new JProperty("bool", new JObject
                         {
                             new JProperty("must", new JArray(searchClauses))
                         })
