@@ -7,6 +7,7 @@
         "person" : {
             "properties": {
                 "poolStatuses": {
+                    "type": "nested",
                     "properties": {
                         "pool": {
                             "properties": {

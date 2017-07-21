@@ -236,7 +236,7 @@ namespace Hdq.PersonDataManager.Api.Dal
             if (apiSearch.Tags.Any())
                 mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
             if (apiSearch.PoolStatuses.Any())
-                mustClauses.AddRange(apiSearch.PoolStatuses.SelectMany(ToTermPool));
+                mustClauses.AddRange(apiSearch.PoolStatuses.Select(ToTermPool));
             if (apiSearch.Name != null)
             {
                 if (!string.IsNullOrWhiteSpace(apiSearch.Name.FirstName))
@@ -342,33 +342,48 @@ namespace Hdq.PersonDataManager.Api.Dal
             );
         }
         
-            public static JObject[] ToTermPool(PoolStatus poolStatus)
+        public static JObject ToTermPool(PoolStatus poolStatus)
+        {
+            var poolClause = 
+            JObject.Parse(
+                @"{
+                    ""match"" : {
+                        ""poolStatuses.pool.id"": " + poolStatus.Pool.Id.ToString().Enclose() + @"
+                    }
+                }"
+            );
+            if (string.IsNullOrWhiteSpace(poolStatus.Status))
             {
-                var result = new List<JObject>();
-                var poolClause = 
+                return ToNested("poolStatuses", new[] {poolClause});
+            }
+            
+            var statusClause = 
                 JObject.Parse(
                     @"{
                         ""match"" : {
-                            ""poolStatuses.pool.id"": " + poolStatus.Pool.Id.ToString().Enclose() + @"
+                            ""poolStatuses.status"": " + poolStatus.Status.Enclose() + @"
                         }
                     }"
                 );
-                result.Add(poolClause);
-                if (!string.IsNullOrWhiteSpace(poolStatus.Status))
+            return ToNested("poolStatuses", new[] {poolClause, statusClause});
+        }
+
+        private static JObject ToNested(string poolstatuses, JObject[] searchClauses)
+        {
+            return new JObject(
+                new JProperty("nested", new JObject
                 {
-                    var statusClause = 
-                        JObject.Parse(
-                            @"{
-                                ""match"" : {
-                                    ""poolStatuses.status"": " + poolStatus.Status.Enclose() + @"
-                                }
-                            }"
-                        );
-                    result.Add(statusClause);
-                }
-                return result.ToArray();
-            }
-            
+                   new JProperty("path", poolstatuses) ,
+                    new JProperty("query", new JObject()
+                    {
+                        new JProperty("bool", new JObject()
+                        {
+                            new JProperty("must", new JArray(searchClauses))
+                        })
+                    })
+                }));
+        }
+
         public static JObject ToTerm(string field, string value)
         {
             return JObject.Parse(
