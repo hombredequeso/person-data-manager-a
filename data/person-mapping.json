@@ -6,6 +6,20 @@
     "mappings": {
         "person" : {
             "properties": {
+                "poolStatuses": {
+                    "properties": {
+                        "pool": {
+                            "properties": {
+                                "id": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
+                        "status": {
+                            "type": "keyword"
+                        }
+                    }
+                },
                 "address": {
                     "properties": {
                         "geo" : {

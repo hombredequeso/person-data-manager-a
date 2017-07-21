@@ -81,16 +81,16 @@ namespace Hdq.PersonDataManager.Api.Modules
         public PostFilter PostFilter { get; set; }
     }
 
-    public class PoolStatusMatch
+    public class PoolStatus
     {
-        public int PoolId { get; set; }
+        public Pool Pool { get; set; }
         public string Status { get; set; }
     }
 
-    public class PoolStatus
+    public class Pool
     {
-        public string Pool { get; set; }
-        public string Status { get; set; }
+        public Guid Id { get; set; }
+        public string Description { get; set; }
     }
 
     public class BulkTagAdd

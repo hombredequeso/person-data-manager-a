@@ -19,4 +19,8 @@
 {"id":"08076ae2-84dc-444f-875d-0c66bbdcb5ea","name":{"firstName":"bob","lastName":"Morrison"},"tags":["tagtest3", "tagtest4"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"02 8304 7192"}],"email":[{"label":"work","address":"Ivy.Morrison@yahoo.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
 {"index":{"_index":"person","_type":"person","_id":"d5ee1c1f-8bbf-44e5-b08b-aca985e3657d"}}
 {"id":"d5ee1c1f-8bbf-44e5-b08b-aca985e3657d","name":{"firstName":"bob","lastName":"Abbott"},"tags":["tagtest3", "tagtest5"],"poolStatuses":[],"contact":{"phone":[{"label":"home","number":"+61 492 584 144"}],"email":[{"label":"work","address":"Paige.Abbott@yahoo.com"}]},"address":{"region":"Nowhere","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
+{"index":{"_index":"person","_type":"person","_id":"e5ee1c1f-8bbf-44e5-b08b-aca985e3657a"}}
+{"id":"e5ee1c1f-8bbf-44e5-b08b-aca985e3657a","name":{"firstName":"aaa","lastName":"bbb"},"tags":["", ""],"poolStatuses":[{"pool": {"id":"f5ee1c1f-8bbf-44e5-b08b-aca985e36571", "description":"pool1"}, "status": "STATUS_1"}],"contact":{"phone":[{"label":"home","number":"+61 492 584 144"}],"email":[]},"address":{"region":"rrrr","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
+{"index":{"_index":"person","_type":"person","_id":"e5ee1c1f-8bbf-44e5-b08b-aca985e3657b"}}
+{"id":"e5ee1c1f-8bbf-44e5-b08b-aca985e3657b","name":{"firstName":"aaa","lastName":"bbb"},"tags":["", ""],"poolStatuses":[{"pool": {"id":"f5ee1c1f-8bbf-44e5-b08b-aca985e36571", "description":"pool1"}, "status": "STATUS_2"}],"contact":{"phone":[{"label":"home","number":"+61 492 584 144"}],"email":[]},"address":{"region":"rrrr","geo":{"coord":{"lat":0.1,"lon":0.1}}}}
 

@@ -6,15 +6,29 @@ class SearchBody {
             "firstName": "",
             "lastName": ""
         };
-        this.tags= [],
+        this.poolStatuses = [];
+        this.tags= [];
         this.near= {
             "coord": {
                 "lat": -37.814,
                 "lon": 144.963
             },
             "distance" : 40
-        }
+        };
+    }
+}
 
+class Pool {
+    constructor(id, description) {
+        this.id = id;
+        this.description = description;
+    }
+}
+
+class PoolStatus {
+    constructor(pool, status) {
+        this.pool = pool;
+        this.status = status;
     }
 }
 
@@ -134,4 +148,44 @@ frisby.create('post-filter test')
           "key" : "tagtest5",
           "doc_count" : 1
     })
+    .toss();
+
+var poolTest1 = new SearchBody();
+poolTest1.poolStatuses.push(new PoolStatus(new Pool("f5ee1c1f-8bbf-44e5-b08b-aca985e36571", "pool1"), "STATUS_1"))
+poolTest1.near = null;
+frisby.create('pool test status_1')
+    .post('http://localhost:8080/api/person/search', poolTest1, {json: true})
+    // hits:
+    .expectJSONLength('hits.hits', 1)
+    .expectJSON('hits.hits.?', {
+        _id :"e5ee1c1f-8bbf-44e5-b08b-aca985e3657a"
+    })
+    .expectStatus(200)
+    .toss();
+
+var poolTest2 = new SearchBody();
+poolTest2.poolStatuses.push(new PoolStatus(new Pool("f5ee1c1f-8bbf-44e5-b08b-aca985e36571", "pool1"), "STATUS_2"))
+poolTest2.near = null;
+frisby.create('pool test status_2')
+    .post('http://localhost:8080/api/person/search', poolTest2, {json: true})
+    .expectJSONLength('hits.hits', 1)
+    .expectJSON('hits.hits.?', {
+        _id :"e5ee1c1f-8bbf-44e5-b08b-aca985e3657b"
+    })
+    .expectStatus(200)
+    .toss();
+
+var poolTest3 = new SearchBody();
+poolTest3.poolStatuses.push(new PoolStatus(new Pool("f5ee1c1f-8bbf-44e5-b08b-aca985e36571", "pool1"), ""))
+poolTest3.near = null;
+frisby.create('pool test all statuses')
+    .post('http://localhost:8080/api/person/search', poolTest3, {json: true})
+    .expectJSONLength('hits.hits', 2)
+    .expectJSON('hits.hits.?', {
+        _id :  "e5ee1c1f-8bbf-44e5-b08b-aca985e3657a" 
+    })
+    .expectJSON('hits.hits.?', {
+        _id : "e5ee1c1f-8bbf-44e5-b08b-aca985e3657b"
+    })
+    .expectStatus(200)
     .toss();

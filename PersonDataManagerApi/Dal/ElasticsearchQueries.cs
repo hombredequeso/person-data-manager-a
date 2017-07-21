@@ -235,6 +235,8 @@ namespace Hdq.PersonDataManager.Api.Dal
             var mustClauses = new List<JObject>();
             if (apiSearch.Tags.Any())
                 mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
+            if (apiSearch.PoolStatuses.Any())
+                mustClauses.AddRange(apiSearch.PoolStatuses.SelectMany(ToTermPool));
             if (apiSearch.Name != null)
             {
                 if (!string.IsNullOrWhiteSpace(apiSearch.Name.FirstName))
@@ -340,6 +342,33 @@ namespace Hdq.PersonDataManager.Api.Dal
             );
         }
         
+            public static JObject[] ToTermPool(PoolStatus poolStatus)
+            {
+                var result = new List<JObject>();
+                var poolClause = 
+                JObject.Parse(
+                    @"{
+                        ""match"" : {
+                            ""poolStatuses.pool.id"": " + poolStatus.Pool.Id.ToString().Enclose() + @"
+                        }
+                    }"
+                );
+                result.Add(poolClause);
+                if (!string.IsNullOrWhiteSpace(poolStatus.Status))
+                {
+                    var statusClause = 
+                        JObject.Parse(
+                            @"{
+                                ""match"" : {
+                                    ""poolStatuses.status"": " + poolStatus.Status.Enclose() + @"
+                                }
+                            }"
+                        );
+                    result.Add(statusClause);
+                }
+                return result.ToArray();
+            }
+            
         public static JObject ToTerm(string field, string value)
         {
             return JObject.Parse(

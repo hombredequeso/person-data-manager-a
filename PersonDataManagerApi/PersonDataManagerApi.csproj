@@ -151,8 +151,6 @@
     <Compile Include="Domain\Id.cs" />
     <Compile Include="Domain\IntId.cs" />
     <Compile Include="Domain\Pool.cs" />
-    <Compile Include="Domain\PoolStatus.cs" />
-    <Compile Include="Domain\Status.cs" />
     <Compile Include="Domain\Tag.cs" />
     <Compile Include="HomeModule.cs" />
     <Compile Include="Program.cs" />
