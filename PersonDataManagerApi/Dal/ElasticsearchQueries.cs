@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using Elasticsearch.Net;
 using Hdq.PersonDataManager.Api.Domain;
 using Hdq.PersonDataManager.Api.Modules;
 using Nest;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NGeoHash;
 
@@ -118,10 +120,20 @@ namespace Hdq.PersonDataManager.Api.Dal
         public static readonly string PersonIndex = "person";
         public static readonly string PersonType = "person";
 
+        public static readonly string SavedQueryIndex = "savedquery";
+        public static readonly string SavedQueryType = "savedquery";
+
         public static Person GetPerson(string id)
         {
             var request = new GetRequest<Person>(PersonIndex, PersonType, id);
             var response = ElasticsearchDb.Client.Get<Person>(request);
+            return response.Found ? response.Source : null;
+        }
+
+        public static SavedQuery GetQuery(string id)
+        {
+            var request = new GetRequest<SavedQuery>(SavedQueryIndex, SavedQueryType, id);
+            var response = ElasticsearchDb.Client.Get<SavedQuery>(request);
             return response.Found ? response.Source : null;
         }
 
@@ -142,16 +154,35 @@ namespace Hdq.PersonDataManager.Api.Dal
             return r.IsValid;
         }
 
+        public static bool IndexQuery(SavedQuery savedQuery)
+        {
+            Func<IndexDescriptor<SavedQuery>, IIndexRequest> selector =
+                x =>
+                {
+                    var result = x.Index(SavedQueryIndex).Type(SavedQueryType);
+                    if (!string.IsNullOrWhiteSpace(savedQuery.Metadata.Id))
+                    {
+                        result = result.Id(savedQuery.Metadata.Id);
+                    }
+                    return result;
+                };
+
+            IIndexResponse r = ElasticsearchDb.Client.Index(savedQuery, selector);
+            return r.IsValid;
+        }
+
         public class CommandResponse
         {
-            public CommandResponse(Guid commandId, bool success)
+            public CommandResponse(Guid commandId, bool success, IEnumerable<string>  message = null)
             {
                 CommandId = commandId;
                 Success = success;
+                Message = message?.ToArray() ?? new string[0];
             }
 
             public Guid CommandId { get; }
             public bool Success { get; }
+            public string[] Message { get; }
         }
         
         public static CommandResponse UpdateMatchingPersonTags(Command<BulkTagAdd> cmd)
@@ -163,11 +194,23 @@ namespace Hdq.PersonDataManager.Api.Dal
                 cmd.Id);
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel
                 .UpdateByQuery<byte[]>(PersonIndex, body);
-            var responseBody = response.Body;
-            var bodyAsStr = AsUtf8String(responseBody);
-            Console.WriteLine(bodyAsStr);
-            
-            // JObject jobj = JObject.Parse(bodyAsStr);
+            var commandResponse = ToCommandResponse(cmd, response);
+            return commandResponse;
+        }
+
+        private static CommandResponse ToCommandResponse(
+            Command<BulkTagAdd> cmd, 
+            ElasticsearchResponse<byte[]> response)
+        {
+            var responseBody = JObject.Parse(AsUtf8String(response.Body));
+            Console.WriteLine(responseBody.ToString());
+            if (((JArray)responseBody["failures"]).Any())
+            {
+                return new CommandResponse(
+                    cmd.Id, 
+                    false, 
+                    new []{"Some entities failed to update"});
+            }
             return new CommandResponse(cmd.Id, response.Success);
         }
 
@@ -220,6 +263,64 @@ namespace Hdq.PersonDataManager.Api.Dal
                 ? EnrichEsSearchResult(response.Body) 
                 : null;
         }
+
+
+        public static string SearchSavedQueries(SavedQueryMatch apiSearch, int from, int size)
+        {
+            var response =
+                ElasticsearchDb.Client.LowLevel.Search<byte[]>("savedquery", "savedquery",
+                    new PostData<object>(GetSavedQueriesSearchQuery(apiSearch, from, size)));
+
+            return response.Success 
+                ? EnrichEsSearchResult(response.Body) 
+                : null;
+        }
+
+
+        private static string GetSavedQueriesSearchQuery(SavedQueryMatch apiSearch, int from, int size)
+        {
+            var mustClauses = new List<JObject>();
+            if (apiSearch.Tags.Any())
+                mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
+            if (apiSearch.PoolStatuses.Any())
+                mustClauses.AddRange(apiSearch.PoolStatuses.Select(ToTermPool));
+            if (apiSearch.Name != null)
+            {
+                if (!string.IsNullOrWhiteSpace(apiSearch.Name.FirstName))
+                    mustClauses.Add(ToMatch("name.firstName", apiSearch.Name.FirstName));
+                if (!string.IsNullOrWhiteSpace(apiSearch.Name.LastName))
+                    mustClauses.Add(ToMatch("name.lastName", apiSearch.Name.LastName));
+            }
+
+            var mustArrayClauses = new JArray(mustClauses);
+
+            var filters = new List<JObject>();
+            // if (apiSearch.Near != null)
+            // {
+            //     var geoFilter = ToGeoDistance(apiSearch.Near.Coord, apiSearch.Near.Distance);
+            //     filters.Add(geoFilter);
+            // }
+            var filterClauses = new JArray(filters);
+            
+            // var aggregations = GetAggregations(apiSearch);
+            // var postFilterArrayClauses = GetPostFilterArrayClauses(apiSearch);
+
+            var query = @"
+                {
+                  ""from"": " + from + @",
+                  ""size"": " + size + @",
+                  ""query"": {
+                    ""bool"": {
+                      ""must"" : " +
+                        mustArrayClauses
+                        + @",
+                    ""filter"" : " + filterClauses + @"
+                    }
+                  } 
+                }";
+            return query;
+        }
+
 
         public static string MoreLikePeople(string[] ids)
         {
@@ -482,5 +583,6 @@ namespace Hdq.PersonDataManager.Api.Dal
                 ";
             return query;
         }
+
     }
 }

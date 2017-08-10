@@ -32,7 +32,6 @@ class PoolStatus {
     }
 }
 
-
 // Completely unique test
 var uniqueTest = new SearchBody();
 uniqueTest.name.firstName = "john";
