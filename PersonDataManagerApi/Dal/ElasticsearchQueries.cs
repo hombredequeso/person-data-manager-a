@@ -2,115 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using Elasticsearch.Net;
 using Hdq.PersonDataManager.Api.Domain;
 using Hdq.PersonDataManager.Api.Modules;
 using Nest;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using NGeoHash;
 
 namespace Hdq.PersonDataManager.Api.Dal
 {
-    public static class StringExtensions
-    {
-        public static string Enclose(this string s, string e = "\"")
-        {
-            return $"{e}{s}{e}";
-        }
-    }
-
-    public static class QueryAggregations
-    {
-        public static JProperty GetGeoDistanceAggregation(Coord coord)
-        {
-            string s = 
-                @"{
-                    ""geo_distance"" : {
-                        ""field"": ""geo.coord"",
-                        ""origin"": " + $"{coord.Lat}, {coord.Lon}".Enclose() + @",
-                        ""unit"": ""km"",
-                        ""ranges"": [
-                            {""to"": 10},
-                            {""from"": 10, ""to"": 20},
-                            {""from"": 20, ""to"": 50},
-                            {""from"": 50, ""to"": 500},
-                            {""from"": 500}
-                        ]
-                    }
-                }";
-            return new JProperty("geoDistance", JObject.Parse(s));
-        }
-
-        public static JProperty GetGeoGridAggregation()
-        {
-            string s =
-                @"{
-                    ""geohash_grid"" : {
-                        ""field"" : ""address.geo.coord"",
-                        ""precision"" : 3
-                    }
-                }";
-            return new JProperty("geoGrid", JObject.Parse(s));
-        }
-
-        public static JProperty GetTagAggregations()
-        {
-            string obj = 
-                    @"{
-                        ""terms"" : {
-                            ""field"" : ""tags.keyword""
-                        }
-                    }";
-
-            return new JProperty("tagAggs", JObject.Parse(obj));
-        }
-        
-        
-        public static void AddIf(this JObject o, bool conditional, Func<JProperty> p)
-        {
-            if (conditional)
-                o.Add(p());
-        }
-        
-        
-        public static JProperty GetPoolStatusAggregations()
-        {
-            string obj =
-                @"{
-                    ""nested"": {
-                        ""path"": ""poolStatuses""
-                    },
-                    ""aggs"": {
-                        ""poolStatusAggs"": {
-                            ""terms"": {
-                                ""field"": ""poolStatuses.pool.id""
-                            },
-                            ""aggs"": {
-                                ""pool.description"": {
-                                    ""terms"": {
-                                        ""field"": ""poolStatuses.pool.description"",
-                                        ""size"": 1
-                                    }
-                                },
-                                ""statusAgg"": {
-                                    ""terms"": {
-                                        ""field"": ""poolStatuses.status""
-                                    }
-                                }
-                            }
-                        }
-                    }
-                  }";
-            
-            return new JProperty("poolStatusAggs", JObject.Parse(obj));
-
-        }
-
-    }
-
     public static class ElasticsearchQueries
     {
         public static bool SearchOnGeoCoord(PersonMatch apiSearch)
@@ -121,32 +21,11 @@ namespace Hdq.PersonDataManager.Api.Dal
         public static readonly string PersonIndex = "person";
         public static readonly string PersonType = "person";
 
-        public static readonly string SavedQueryIndex = "savedquery";
-        public static readonly string SavedQueryType = "savedquery";
-
         public static Person GetPerson(string id)
         {
             var request = new GetRequest<Person>(PersonIndex, PersonType, id);
             IGetResponse<Person> response = ElasticsearchDb.Client.Get<Person>(request);
             return response.Found ? response.Source : null;
-        }
-
-        public static JObject GetQuery(string id)
-        {
-            ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel.Get<byte[]>(
-                SavedQueryIndex, SavedQueryType, id);
-            if (response.Success)
-            {
-                var respBody = JObject.Parse(AsUtf8String(response.Body));
-                var isFound = (bool)respBody["found"];
-                if (isFound)
-                {
-                    var result = (JObject)respBody["_source"];
-                    return result;
-                }
-                return null;
-            }
-            return null;
         }
 
         public static bool IndexPerson(Person person, bool refresh)
@@ -166,51 +45,6 @@ namespace Hdq.PersonDataManager.Api.Dal
 
             IIndexResponse r = ElasticsearchDb.Client.Index(person, selector);
             return r.IsValid;
-        }
-
-        public static bool IndexQuery(SavedQuery savedQuery, bool refresh)
-        {
-            // TODO: convert SavedQuery data into an actual query form here, and index that.
-            string bodyContent = GetSavedQueryBody(savedQuery).ToString(Formatting.None);
-            PostData<object> body = bodyContent;
-            string id = savedQuery.Metadata.Id;
-            Func<IndexRequestParameters, IndexRequestParameters> requestParams = p =>
-            {
-                if (refresh)
-                    p.Refresh(Refresh.True);
-                return p;
-            };
-            ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel.Index<byte[]>(
-                SavedQueryIndex,
-                SavedQueryType,
-                id,
-                body,
-                requestParams);
-            return response.Success;
-        }
-
-        private static JObject GetSavedQueryBody(SavedQuery savedQuery)
-        {
-            var mustClauses = new List<JObject>();
-            if (savedQuery.QueryParameters.Tags.Any())
-                mustClauses.AddRange(savedQuery.QueryParameters.Tags.Select(ToTermTag));
-
-            var mustArrayClauses = new JArray(mustClauses);
-            JsonSerializerSettings settings =
-                new JsonSerializerSettings {ContractResolver = new CamelCasePropertyNamesContractResolver()};
-            JsonSerializer serializer = JsonSerializer.CreateDefault(settings);
-            var sq = JObject.FromObject(savedQuery, serializer);
-
-            var result =  JObject.Parse(@"{
-                    ""query"": {
-                        ""bool"": {
-                          ""must"" : " + mustArrayClauses
-                        + @"
-                        }
-                    }
-                }");
-            result.Merge(sq);
-            return result;
         }
 
         public class CommandResponse
@@ -244,7 +78,7 @@ namespace Hdq.PersonDataManager.Api.Dal
             Command<BulkTagAdd> cmd, 
             ElasticsearchResponse<byte[]> response)
         {
-            JObject responseBody = JObject.Parse(AsUtf8String(response.Body));
+            JObject responseBody = JObject.Parse(response.Body.AsUtf8String());
             Console.WriteLine(responseBody.ToString());
             if (((JArray)responseBody["failures"]).Any())
             {
@@ -277,7 +111,7 @@ namespace Hdq.PersonDataManager.Api.Dal
 
         public static string EnrichEsSearchResult(byte[] searchResult)
         {
-            string result =  AsUtf8String(searchResult);
+            string result = searchResult.AsUtf8String();
             JObject resultAsJObject = JObject.Parse(result);
             JToken geoBuckets =  GetToken(
                 resultAsJObject, 
@@ -307,58 +141,13 @@ namespace Hdq.PersonDataManager.Api.Dal
         }
 
 
-        public static string SearchSavedQueries(SavedQueryMatch apiSearch, int from, int size)
-        {
-            var response = ElasticsearchDb.Client.LowLevel.Search<byte[]>(
-                "savedquery",
-                "savedquery",
-                new PostData<object>(GetSavedQueriesSearchQuery(apiSearch, from, size)));
-
-            return AsUtf8String(response.Body);
-        }
-
-        public static string PercolateSearchSavedQueries(SavedQueryPercolateMatch search, int from, int size)
-        {
-            var query = @"
-                {
-                  ""query"": {
-                    ""percolate"": {
-                        ""field"": ""query"",
-                        ""document_type"": ""person"",
-                        ""index"": " + search.Entity.Enclose() + @",
-                        ""type"": " + search.Entity.Enclose() + @",
-                        ""id"": """ + search.Id + @"""
-                    }
-                  } 
-                }";
-
-            var response =
-                ElasticsearchDb.Client.LowLevel.Search<byte[]>("savedquery", "savedquery",
-                    new PostData<object>(query));
-
-            return response.Success 
-                ? AsUtf8String(response.Body)
-                : null;
-        }
-
-        private static string GetSavedQueriesSearchQuery(SavedQueryMatch apiSearch, int from, int size)
-        {
-
-            var query = @"
-                {
-                  ""from"": " + from + @",
-                  ""size"": " + size + @"
-                }";
-            return query;
-        }
-
 
         public static string MoreLikePeople(string[] ids)
         {
             var response =
                 ElasticsearchDb.Client.LowLevel.Search<byte[]>("person", "person",
                     new PostData<object>(GetMoreLikeQuery(ids)));
-            var jsonResponse = AsUtf8String(response.Body);
+            var jsonResponse = response.Body.AsUtf8String();
             return response.Success ? jsonResponse : null;
         }
 
@@ -393,16 +182,11 @@ namespace Hdq.PersonDataManager.Api.Dal
             return new JArray(result);
         }
 
-        public static string AsUtf8String(byte[] b)
-        {
-            return Encoding.UTF8.GetString(b);
-        }
-
         private static string GetSearchQuery(PersonMatch apiSearch, int from, int size)
         {
             var mustClauses = new List<JObject>();
             if (apiSearch.Tags.Any())
-                mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
+                mustClauses.AddRange(apiSearch.Tags.Select("tags".Matching));
             if (apiSearch.PoolStatuses.Any())
                 mustClauses.AddRange(apiSearch.PoolStatuses.Select(ToTermPool));
             if (apiSearch.Name != null)
@@ -455,7 +239,7 @@ namespace Hdq.PersonDataManager.Api.Dal
         {
             var postFilterClauses = new List<JObject>();
             if (apiSearch.PostFilter != null && apiSearch.PostFilter.Tags.Any())
-                postFilterClauses.AddRange(apiSearch.PostFilter.Tags.Select(ToTermTag));
+                postFilterClauses.AddRange(apiSearch.PostFilter.Tags.Select("tags".Matching));
             var postFilterArrayClauses = new JArray(postFilterClauses);
             return postFilterArrayClauses;
         }
@@ -501,17 +285,6 @@ namespace Hdq.PersonDataManager.Api.Dal
             return JObject.Parse(obj);
         }
 
-        public static JObject ToTermTag(string tag)
-        {
-            return JObject.Parse(
-                @"{
-                    ""match"" : {
-                        ""tags"": " + tag.Enclose() + @"
-                    }
-                }"
-            );
-        }
-        
         public static JObject ToTermPool(PoolStatus poolStatus)
         {
             var poolClause = 
@@ -580,7 +353,7 @@ namespace Hdq.PersonDataManager.Api.Dal
             string firstName,
             string tagValue, Guid operationId)
         {
-            var filterTerms = tags.Select(ToTermTag).ToList();
+            var filterTerms = tags.Select("tags".Matching).ToList();
             if (!string.IsNullOrWhiteSpace(firstName))
             {
                 var nameTerm = ToTerm("name.firstName", firstName);

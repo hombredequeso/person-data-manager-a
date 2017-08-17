@@ -142,6 +142,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dal\ElasticsearchSavedQueryQueries.cs" />
+    <Compile Include="Dal\QueryAggregations.cs" />
+    <Compile Include="Dal\QueryClauses.cs" />
+    <Compile Include="Dal\StringExtensions.cs" />
     <Compile Include="Domain\Command.cs" />
     <Compile Include="Lib\Either.cs" />
     <Compile Include="Modules\PersonModule.cs" />

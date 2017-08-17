@@ -46,14 +46,14 @@ namespace Hdq.PersonDataManager.Api.Modules
             {
                 var query = this.Bind<SavedQuery>();
                 var isRefresh = Request.HasQueryParameter("refresh");
-                var success = ElasticsearchQueries.IndexQuery(query, isRefresh);
+                var success = ElasticsearchSavedQueryQueries.IndexQuery(query, isRefresh);
                 return success ? HttpStatusCode.Created : HttpStatusCode.InternalServerError;
             };
 
             Get["/api/query/{id}"] = parameters =>
             {
                 string id = parameters.id;
-                JObject queryFromElastic = ElasticsearchQueries.GetQuery(id);
+                JObject queryFromElastic = ElasticsearchSavedQueryQueries.GetQuery(id);
 
                 return queryFromElastic == null
                     ? HttpStatusCode.NotFound
@@ -102,7 +102,7 @@ namespace Hdq.PersonDataManager.Api.Modules
 
         private Response PercSearch(SavedQueryPercolateMatch percSearch, Pager pager)
         {
-            var searchResult = ElasticsearchQueries.PercolateSearchSavedQueries(
+            var searchResult = ElasticsearchSavedQueryQueries.PercolateSearchSavedQueries(
                                     percSearch, pager.From, pager.Size);
             return !string.IsNullOrWhiteSpace(searchResult)
                 ? Response.AsText(searchResult, "application/json")
@@ -111,7 +111,7 @@ namespace Hdq.PersonDataManager.Api.Modules
 
         private Response Search(SavedQueryMatch apiSearch, Pager pager)
         {
-            var searchResult = ElasticsearchQueries.SearchSavedQueries(
+            var searchResult = ElasticsearchSavedQueryQueries.SearchSavedQueries(
                 apiSearch,
                 pager.From,
                 pager.Size);
