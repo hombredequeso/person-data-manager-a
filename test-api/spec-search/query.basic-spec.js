@@ -70,9 +70,20 @@ let percolateSearchBody = {
     id: p.id
 };
 
+let expectedPercResult = {
+    hits: {
+        hits: [
+            {
+                _id: savedQuery.metadata.id
+            }
+        ]
+    }
+};
+
 frisby.create(`Search for queries matching person ${p.id}`)
     .post(`http://localhost:8080/api/query/searchPerc`, percolateSearchBody, {json:true})
     .expectStatus(200)
+    .expectJSON (expectedPercResult)
     .expectJSONLength('hits.hits', 1)
     .expectHeaderContains('content-type', 'application/json')
     .toss();

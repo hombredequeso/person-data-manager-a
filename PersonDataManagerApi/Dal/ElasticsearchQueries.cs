@@ -325,8 +325,8 @@ namespace Hdq.PersonDataManager.Api.Dal
                     ""percolate"": {
                         ""field"": ""query"",
                         ""document_type"": ""person"",
-                        ""index"": ""person"",
-                        ""type"": ""person"",
+                        ""index"": " + search.Entity.Enclose() + @",
+                        ""type"": " + search.Entity.Enclose() + @",
                         ""id"": """ + search.Id + @"""
                     }
                   } 
