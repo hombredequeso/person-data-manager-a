@@ -18,6 +18,7 @@ namespace Hdq.PersonDataManager.Api.Lib
                 r1 => f(r1)
             );
         }
+
     }
 
     /// <summary>

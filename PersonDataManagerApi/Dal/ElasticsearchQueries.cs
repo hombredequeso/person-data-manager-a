@@ -9,6 +9,7 @@ using Hdq.PersonDataManager.Api.Modules;
 using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using NGeoHash;
 
 namespace Hdq.PersonDataManager.Api.Dal
@@ -126,15 +127,26 @@ namespace Hdq.PersonDataManager.Api.Dal
         public static Person GetPerson(string id)
         {
             var request = new GetRequest<Person>(PersonIndex, PersonType, id);
-            var response = ElasticsearchDb.Client.Get<Person>(request);
+            IGetResponse<Person> response = ElasticsearchDb.Client.Get<Person>(request);
             return response.Found ? response.Source : null;
         }
 
-        public static SavedQuery GetQuery(string id)
+        public static JObject GetQuery(string id)
         {
-            var request = new GetRequest<SavedQuery>(SavedQueryIndex, SavedQueryType, id);
-            var response = ElasticsearchDb.Client.Get<SavedQuery>(request);
-            return response.Found ? response.Source : null;
+            ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel.Get<byte[]>(
+                SavedQueryIndex, SavedQueryType, id);
+            if (response.Success)
+            {
+                var respBody = JObject.Parse(AsUtf8String(response.Body));
+                var isFound = (bool)respBody["found"];
+                if (isFound)
+                {
+                    var result = (JObject)respBody["_source"];
+                    return result;
+                }
+                return null;
+            }
+            return null;
         }
 
         public static bool IndexPerson(Person person)
@@ -156,19 +168,40 @@ namespace Hdq.PersonDataManager.Api.Dal
 
         public static bool IndexQuery(SavedQuery savedQuery)
         {
-            Func<IndexDescriptor<SavedQuery>, IIndexRequest> selector =
-                x =>
-                {
-                    var result = x.Index(SavedQueryIndex).Type(SavedQueryType);
-                    if (!string.IsNullOrWhiteSpace(savedQuery.Metadata.Id))
-                    {
-                        result = result.Id(savedQuery.Metadata.Id);
-                    }
-                    return result;
-                };
+            // TODO: convert SavedQuery data into an actual query form here, and index that.
+            string bodyContent = GetSavedQueryBody(savedQuery).ToString(Formatting.None);
+            PostData<object> body = bodyContent;
+            string id = savedQuery.Metadata.Id;
+            ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel.Index<byte[]>(
+                SavedQueryIndex,
+                SavedQueryType,
+                id,
+                body);
+            return response.Success;
+        }
 
-            IIndexResponse r = ElasticsearchDb.Client.Index(savedQuery, selector);
-            return r.IsValid;
+        private static JObject GetSavedQueryBody(SavedQuery savedQuery)
+        {
+            var mustClauses = new List<JObject>();
+            if (savedQuery.QueryParameters.Tags.Any())
+                mustClauses.AddRange(savedQuery.QueryParameters.Tags.Select(ToTermTag));
+
+            var mustArrayClauses = new JArray(mustClauses);
+            JsonSerializerSettings settings =
+                new JsonSerializerSettings {ContractResolver = new CamelCasePropertyNamesContractResolver()};
+            JsonSerializer serializer = JsonSerializer.CreateDefault(settings);
+            var sq = JObject.FromObject(savedQuery, serializer);
+
+            var result =  JObject.Parse(@"{
+                    ""query"": {
+                        ""bool"": {
+                          ""must"" : " + mustArrayClauses
+                        + @"
+                        }
+                    }
+                }");
+            result.Merge(sq);
+            return result;
         }
 
         public class CommandResponse
@@ -202,7 +235,7 @@ namespace Hdq.PersonDataManager.Api.Dal
             Command<BulkTagAdd> cmd, 
             ElasticsearchResponse<byte[]> response)
         {
-            var responseBody = JObject.Parse(AsUtf8String(response.Body));
+            JObject responseBody = JObject.Parse(AsUtf8String(response.Body));
             Console.WriteLine(responseBody.ToString());
             if (((JArray)responseBody["failures"]).Any())
             {
@@ -267,56 +300,45 @@ namespace Hdq.PersonDataManager.Api.Dal
 
         public static string SearchSavedQueries(SavedQueryMatch apiSearch, int from, int size)
         {
+            var response = ElasticsearchDb.Client.LowLevel.Search<byte[]>(
+                "savedquery",
+                "savedquery",
+                new PostData<object>(GetSavedQueriesSearchQuery(apiSearch, from, size)));
+
+            return AsUtf8String(response.Body);
+        }
+
+        public static string PercolateSearchSavedQueries(SavedQueryPercolateMatch search, int from, int size)
+        {
+            var query = @"
+                {
+                  ""query"": {
+                    ""percolate"": {
+                        ""field"": ""query"",
+                        ""document_type"": ""person"",
+                        ""index"": ""person"",
+                        ""type"": ""person"",
+                        ""id"": """ + search.Id + @"""
+                    }
+                  } 
+                }";
+
             var response =
                 ElasticsearchDb.Client.LowLevel.Search<byte[]>("savedquery", "savedquery",
-                    new PostData<object>(GetSavedQueriesSearchQuery(apiSearch, from, size)));
+                    new PostData<object>(query));
 
             return response.Success 
-                ? EnrichEsSearchResult(response.Body) 
+                ? AsUtf8String(response.Body)
                 : null;
         }
 
-
         private static string GetSavedQueriesSearchQuery(SavedQueryMatch apiSearch, int from, int size)
         {
-            var mustClauses = new List<JObject>();
-            if (apiSearch.Tags.Any())
-                mustClauses.AddRange(apiSearch.Tags.Select(ToTermTag));
-            if (apiSearch.PoolStatuses.Any())
-                mustClauses.AddRange(apiSearch.PoolStatuses.Select(ToTermPool));
-            if (apiSearch.Name != null)
-            {
-                if (!string.IsNullOrWhiteSpace(apiSearch.Name.FirstName))
-                    mustClauses.Add(ToMatch("name.firstName", apiSearch.Name.FirstName));
-                if (!string.IsNullOrWhiteSpace(apiSearch.Name.LastName))
-                    mustClauses.Add(ToMatch("name.lastName", apiSearch.Name.LastName));
-            }
-
-            var mustArrayClauses = new JArray(mustClauses);
-
-            var filters = new List<JObject>();
-            // if (apiSearch.Near != null)
-            // {
-            //     var geoFilter = ToGeoDistance(apiSearch.Near.Coord, apiSearch.Near.Distance);
-            //     filters.Add(geoFilter);
-            // }
-            var filterClauses = new JArray(filters);
-            
-            // var aggregations = GetAggregations(apiSearch);
-            // var postFilterArrayClauses = GetPostFilterArrayClauses(apiSearch);
 
             var query = @"
                 {
                   ""from"": " + from + @",
-                  ""size"": " + size + @",
-                  ""query"": {
-                    ""bool"": {
-                      ""must"" : " +
-                        mustArrayClauses
-                        + @",
-                    ""filter"" : " + filterClauses + @"
-                    }
-                  } 
+                  ""size"": " + size + @"
                 }";
             return query;
         }

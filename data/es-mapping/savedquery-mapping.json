@@ -1,0 +1,65 @@
+{
+    "settings": {
+        "number_of_shards" :   1,
+        "number_of_replicas" : 0
+    },
+    "mappings": {
+        "queryParameters": {
+            "properties": {
+                "name": {
+                    "properties": {
+                        "firstName": {"type": "keyword"},
+                        "lastName": {"type": "keyword"}
+                    }
+                },
+                "tags": {
+                    "type": "keyword"
+                },
+                "poolStatuses": {
+                    "type": "nested",
+                    "properties": {
+                        "pool": {
+                            "properties": {
+                                "id": {
+                                    "type": "keyword"
+                                },
+                                "description": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
+                        "status": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "address": {
+                    "properties": {
+                        "geo" : {
+                            "properties": {
+                                "coord": {
+                                    "type" : "geo_point"
+                                }
+                            } 
+                        }
+
+                    }
+                }
+            }
+        },
+        "savedquery" : {
+            "properties": {
+                "query": {
+                    "type": "percolator"
+                }
+            }
+        },
+        "metadata": {
+            "properties": {
+                "id": {
+                  "type" : "keyword"
+                }
+            }
+        }
+    }
+}

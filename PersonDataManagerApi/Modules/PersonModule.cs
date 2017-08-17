@@ -181,12 +181,29 @@ namespace Hdq.PersonDataManager.Api.Modules
     
     public class PersonModule : NancyModule
     {
+        public Response Search(PersonMatch apiSearch, Pager pager)
+        {
+            if (apiSearch.PoolStatuses == null)
+            {
+                apiSearch.PoolStatuses = new PoolStatus[0];
+            }
+            var searchResult = ElasticsearchQueries.SearchPeople(
+                apiSearch,
+                pager.From,
+                pager.Size);
+            Response resp =  !string.IsNullOrWhiteSpace(searchResult)
+                ? Response.AsText(searchResult, "application/json")
+                : HttpStatusCode.InternalServerError;
+            return resp;
+            
+        }
+
         public PersonModule()
         {
             Get["/api/person/{id}"] = parameters =>
             {
                 string id = parameters.id;
-                var personFromElastic = ElasticsearchQueries.GetPerson(id);
+                Person personFromElastic = ElasticsearchQueries.GetPerson(id);
                 return personFromElastic != null
                     ? Response.AsJson(personFromElastic)
                     : HttpStatusCode.NotFound;
@@ -209,21 +226,7 @@ namespace Hdq.PersonDataManager.Api.Modules
                         var apiSearch2 = RequestProcessor.Deserialize<PersonMatch>(Request.Body.AsString());
                         return apiSearch2.Match(
                             e => HttpStatusCode.BadRequest,
-                            apiSearch =>
-                            {
-                                if (apiSearch.PoolStatuses == null)
-                                {
-                                    apiSearch.PoolStatuses = new PoolStatus[0];
-                                }
-                                var searchResult = ElasticsearchQueries.SearchPeople(
-                                    apiSearch,
-                                    pager.From,
-                                    pager.Size);
-                                return !string.IsNullOrWhiteSpace(searchResult)
-                                    ? Response.AsText(searchResult, "application/json")
-                                    : HttpStatusCode.InternalServerError;
-                            } 
-                        );
+                            apiSearch => Search(apiSearch, pager));
                     }
                 );
             };

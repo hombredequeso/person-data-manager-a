@@ -2,6 +2,7 @@
 using Nancy;
 using Nancy.Extensions;
 using Nancy.ModelBinding;
+using Newtonsoft.Json.Linq;
 
 namespace Hdq.PersonDataManager.Api.Modules
 {
@@ -15,34 +16,26 @@ namespace Hdq.PersonDataManager.Api.Modules
     {
         public Parameters()
         {
-            Name = new Name();
             Tags = new string[0];
-            PoolStatuses = new PoolStatus[0];
         }
-
-        public Name Name { get; set; }
         public string[] Tags { get; set; }
-        public PoolStatus[] PoolStatuses { get; set; }
     }
 
 
     public class SavedQueryMatch
     {
-        public SavedQueryMatch()
-        {
-            Name = new Name();
-            Tags = new string[0];
-            PoolStatuses = new PoolStatus[0];
-        }
-        public Name Name { get; set; }
-        public string[] Tags { get; set; }
-        public PoolStatus[] PoolStatuses { get; set; }
+    }
+
+    public class SavedQueryPercolateMatch
+    {
+        public string Entity { get; set; } 
+        public string Id { get; set; }
     }
 
     public class SavedQuery
     {
         public MetaData Metadata { get; set; }
-        public Parameters Query { get; set; }
+        public Parameters QueryParameters { get; set; }
     }
 
     public class QueryModule : NancyModule
@@ -59,10 +52,15 @@ namespace Hdq.PersonDataManager.Api.Modules
             Get["/api/query/{id}"] = parameters =>
             {
                 string id = parameters.id;
-                var queryFromElastic = ElasticsearchQueries.GetQuery(id);
-                return queryFromElastic != null
-                    ? Response.AsJson(queryFromElastic)
-                    : HttpStatusCode.NotFound;
+                JObject queryFromElastic = ElasticsearchQueries.GetQuery(id);
+
+                return queryFromElastic == null
+                    ? HttpStatusCode.NotFound
+                    : Response.AsText(queryFromElastic.ToString(), "application/json");
+
+                // var response = (Response)(queryFromElastic.ToString());
+                // response.ContentType = "application/json";
+                // return response;
             };
 
             Post["/api/query/search"] = parameters =>
@@ -72,27 +70,53 @@ namespace Hdq.PersonDataManager.Api.Modules
                     e => HttpStatusCode.BadRequest,
                     pager =>
                     {
-                        var apiSearch2 = RequestProcessor.Deserialize<SavedQueryMatch>(Request.Body.AsString());
-                        return apiSearch2.Match(
-                            e => HttpStatusCode.BadRequest,
-                            apiSearch =>
-                            {
-                                if (apiSearch.PoolStatuses == null)
-                                {
-                                    apiSearch.PoolStatuses = new PoolStatus[0];
-                                }
-                                var searchResult = ElasticsearchQueries.SearchSavedQueries(
-                                    apiSearch,
-                                    pager.From,
-                                    pager.Size);
-                                return !string.IsNullOrWhiteSpace(searchResult)
-                                    ? Response.AsText(searchResult, "application/json")
-                                    : HttpStatusCode.InternalServerError;
-                            }
+                        var savedQueryMatch = RequestProcessor.Deserialize<SavedQueryMatch>(Request.Body.AsString());
+                        return savedQueryMatch.Match(
+                            e2 => HttpStatusCode.BadRequest,
+                            percSearch => Search(percSearch, pager)
                         );
                     }
                 );
             };
+
+
+            Post["/api/query/searchPerc"] = parameters =>
+            {
+                var eitherPager = RequestProcessor.GetPager(Request);
+                return eitherPager.Match(
+                    e => HttpStatusCode.BadRequest,
+                    pager =>
+                    {
+                        var percSearchEither = RequestProcessor.Deserialize<SavedQueryPercolateMatch>(
+                            Request.Body.AsString());
+                        return percSearchEither.Match(
+                            e2 => HttpStatusCode.BadRequest,
+                            percSearch => PercSearch(percSearch, pager)
+                        );
+                    }
+                );
+            };
+
+        }
+
+        private Response PercSearch(SavedQueryPercolateMatch percSearch, Pager pager)
+        {
+            var searchResult = ElasticsearchQueries.PercolateSearchSavedQueries(
+                                    percSearch, pager.From, pager.Size);
+            return !string.IsNullOrWhiteSpace(searchResult)
+                ? Response.AsText(searchResult, "application/json")
+                : HttpStatusCode.InternalServerError;
+        }
+
+        private Response Search(SavedQueryMatch apiSearch, Pager pager)
+        {
+            var searchResult = ElasticsearchQueries.SearchSavedQueries(
+                apiSearch,
+                pager.From,
+                pager.Size);
+            return !string.IsNullOrWhiteSpace(searchResult)
+                ? Response.AsText(searchResult, "application/json")
+                : HttpStatusCode.InternalServerError;
         }
     }
 }
