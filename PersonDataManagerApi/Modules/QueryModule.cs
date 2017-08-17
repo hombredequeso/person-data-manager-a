@@ -45,7 +45,8 @@ namespace Hdq.PersonDataManager.Api.Modules
             Post["api/query"] = parameters =>
             {
                 var query = this.Bind<SavedQuery>();
-                var success = ElasticsearchQueries.IndexQuery(query);
+                var isRefresh = Request.HasQueryParameter("refresh");
+                var success = ElasticsearchQueries.IndexQuery(query, isRefresh);
                 return success ? HttpStatusCode.Created : HttpStatusCode.InternalServerError;
             };
 

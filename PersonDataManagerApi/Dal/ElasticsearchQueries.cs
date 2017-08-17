@@ -149,7 +149,7 @@ namespace Hdq.PersonDataManager.Api.Dal
             return null;
         }
 
-        public static bool IndexPerson(Person person)
+        public static bool IndexPerson(Person person, bool refresh)
         {
             Func<IndexDescriptor<Person>, IIndexRequest> selector =
                 x =>
@@ -159,6 +159,8 @@ namespace Hdq.PersonDataManager.Api.Dal
                     {
                         result = result.Id(person.Id);
                     }
+                    if (refresh)
+                        result.Refresh(Refresh.True);
                     return result;
                 };
 
@@ -166,17 +168,24 @@ namespace Hdq.PersonDataManager.Api.Dal
             return r.IsValid;
         }
 
-        public static bool IndexQuery(SavedQuery savedQuery)
+        public static bool IndexQuery(SavedQuery savedQuery, bool refresh)
         {
             // TODO: convert SavedQuery data into an actual query form here, and index that.
             string bodyContent = GetSavedQueryBody(savedQuery).ToString(Formatting.None);
             PostData<object> body = bodyContent;
             string id = savedQuery.Metadata.Id;
+            Func<IndexRequestParameters, IndexRequestParameters> requestParams = p =>
+            {
+                if (refresh)
+                    p.Refresh(Refresh.True);
+                return p;
+            };
             ElasticsearchResponse<byte[]> response = ElasticsearchDb.Client.LowLevel.Index<byte[]>(
                 SavedQueryIndex,
                 SavedQueryType,
                 id,
-                body);
+                body,
+                requestParams);
             return response.Success;
         }
 

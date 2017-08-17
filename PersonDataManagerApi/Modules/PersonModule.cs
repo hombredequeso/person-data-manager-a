@@ -177,6 +177,15 @@ namespace Hdq.PersonDataManager.Api.Modules
         public HttpStatusCode StatusCode { get; }
         public string ErrorMessage { get; }
     }
+
+    public static class RequestExtensions
+    {
+        public static bool HasQueryParameter(this Request request, string paramName)
+        {
+            dynamic refresh = request.Query[paramName];
+            return refresh.HasValue;
+        }
+    }
     
     
     public class PersonModule : NancyModule
@@ -195,7 +204,6 @@ namespace Hdq.PersonDataManager.Api.Modules
                 ? Response.AsText(searchResult, "application/json")
                 : HttpStatusCode.InternalServerError;
             return resp;
-            
         }
 
         public PersonModule()
@@ -212,7 +220,8 @@ namespace Hdq.PersonDataManager.Api.Modules
             Post["api/person"] = parameters =>
             {
                 var person = this.Bind<Person>();
-                var success = ElasticsearchQueries.IndexPerson(person);
+                var isRefresh = Request.HasQueryParameter("query");
+                var success = ElasticsearchQueries.IndexPerson(person, isRefresh);
                 return success ? HttpStatusCode.Created : HttpStatusCode.InternalServerError;
             };
 
